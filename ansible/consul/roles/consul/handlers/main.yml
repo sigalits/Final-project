@@ -1,0 +1,26 @@
+---
+- name: restart systemd-resolved
+  service:
+    name: "{{ item }}" 
+    state: restarted
+  with_items:
+    - systemd-resolved.service
+    - consul.service
+
+- name: restart dnsmasq
+  service:
+    name: "{{ item }}" 
+    state: restarted
+  with_items:
+    - systemd-resolved.service
+    - dnsmasq
+
+- name: restart consul
+  service:
+    name: consul.service
+    state: restarted
+
+- name: restart docker
+  service: 
+    name: docker 
+    state: restarted

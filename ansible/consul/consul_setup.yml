@@ -1,0 +1,19 @@
+---
+- name: configure consul 
+  hosts:  consul_agent consul_server
+  become: true
+  
+  vars:
+    allow_world_readable_tmpfiles: true
+     
+  roles:
+  - consul
+
+
+- hosts: consul_server
+  become: true
+  tasks:
+  - name: restart consul cluster
+    service:
+      name: consul.service
+      state: restarted

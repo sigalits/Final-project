@@ -1,0 +1,162 @@
+---
+- name: Print all available facts on ubuntu
+  ansible.builtin.debug:
+    var:  ansible_distribution , ansible_hostname , ansible_default_ipv4.address ,ansible_distribution_version , ansible_all_ipv4_addresses
+
+- name: Create consul group
+  group:
+    name: consul
+    state: present
+    system: true
+
+- name: Create consul user
+  user:
+    name: consul
+    group: consul
+    state: present
+
+- name: Create consul dir
+  file: 
+    state: directory
+    path: "{{item }}" 
+    owner: consul
+    mode: 0755
+  loop:
+    - /opt/consul
+    - /etc/consul.d
+    - /run/consul
+
+- name: add Hashicorp's official GPG key
+  apt_key:
+    url: https://apt.releases.hashicorp.com/gpg
+    state: present
+
+- name: add Hashicorp main repository to apt
+  apt_repository:
+    repo: "deb [arch=amd64] https://apt.releases.hashicorp.com {{ansible_distribution_release}} main"
+    state: present
+
+- name: System details
+  debug: msg="{{ item }}"
+  with_items: 
+  - "{{ ansible_distribution }}"
+  - "{{ ansible_distribution_version }}"
+  - "{{ ansible_distribution_major_version }}"
+
+- name: install dnsmasq
+  apt:
+    name:
+      - dnsmasq
+    state: present
+    update_cache: yes
+  when: ( resolved_opt  == 'dnsmasq' )
+
+
+- name: install consul
+  apt:
+    name:
+      - "consul={{consul_version }}"
+    state: present
+    update_cache: yes
+
+- name: configure dnsmasq
+  copy:
+    src: ./files/dnsmasq.conf
+    dest: "{{ dnsmasq_configuration_file }}"
+    mode: 0644
+  notify:
+    - restart dnsmasq
+  when: ( resolved_opt  == 'dnsmasq' )
+
+- name: Forward tcp port 53 to 8600
+  ansible.builtin.iptables:
+    table: nat
+    chain: OUTPUT
+    protocol: tcp
+    match: tcp
+    destination: localhost
+    destination_port: "53"
+    jump: REDIRECT
+    to_ports: "8600"
+    comment: Redirect tcp traffic to port 8600
+  become: yes
+  when: ( ansible_distribution_major_version | int == 20 )
+
+- name: Forward port udp 53 to 8600
+  ansible.builtin.iptables:
+    table: nat
+    chain: OUTPUT
+    protocol: udp
+    match: udp
+    destination: localhost
+    destination_port: "53"
+    jump: REDIRECT
+    to_ports: "8600"
+    comment: Redirect udp traffic to port 8600
+  become: yes
+  when: ( ansible_distribution_major_version | int == 20 )
+
+
+- name: resolve config
+  copy:
+      content: "nameserver 127.0.0.53"
+      dest: /run/systemd/resolve/stub-resolv.conf
+  when:  ( ansible_distribution_major_version | int == 20 ) 
+
+- name: Create resolved dir
+  become: true
+  file: 
+    state: directory
+    path: "{{ resolved_conf_path }}" 
+    owner: root
+    mode: 0755
+  when: ( resolved_opt  == 'systemd' )
+
+- name: configure resolved.conf 
+  template:
+    src: resolved.conf.j2
+    dest: "{{ resolved_conf_file_path[resolved_opt] }}"
+    mode: "0644"
+  notify:
+    - restart systemd-resolved
+
+- name: reload service
+  systemd:
+    daemon-reload: yes
+
+- name: restart systemd-resolved
+  service:
+    name: systemd-resolved
+    state: restarted
+
+- name: restart dnsmasq
+  service:
+    name: dnsmasq
+    state: restarted
+  when: ( resolved_opt  == 'dnsmasq' )
+
+- name: flush handlers
+  meta: flush_handlers
+
+- name: configure consul
+  become: yes
+  become_user: consul
+  template:
+    src: consul.cfg.j2
+    dest: "{{ consul_configuration_file_path }}"
+  notify: restart consul
+
+- name: configure consul service
+  copy:
+    src: ./files/consul.service
+    dest: "{{ consul_service_conf_file_path }}"
+
+  notify: restart consul
+
+- name: Enable consul service
+  systemd:
+    service: consul.service
+    enabled: true
+    state: restarted
+  notify: restart consul
+

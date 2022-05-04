@@ -1,0 +1,8 @@
+[Resolve]
+{% if  resolved_opt  == 'systemd' and ansible_distribution_major_version | int >= 21 -%}
+DNS=127.0.0.1:8600
+{% else -%}
+DNS=127.0.0.1
+{% endif -%}
+Domains=~consul
+DNSSEC=false

@@ -1,0 +1,10 @@
+
+resolved_opt: "{{ 'dnsmasq' if  ansible_distribution  == 'Ubuntu' and  ansible_distribution_major_version  | int < 20  else 'systemd' }}" 
+dnsmasq_configuration_file: /etc/dnsmasq.d/10-consul
+consul_configuration_file_path: /etc/consul.d/config.json
+consul_service_conf_file_path: /etc/systemd/system/consul.service
+resolved_conf_path: /etc/systemd/resolved.conf.d
+resolved_conf_file_path:
+  dnsmasq: /etc/systemd/resolved.conf
+  systemd: /etc/systemd/resolved.conf.d/consul.conf
+dc_name: kandula-dc

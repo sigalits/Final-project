@@ -1,0 +1,4 @@
+---
+#ansible_private_key_file: /home/ubuntu/consul.key
+anisble_ssh_user: ubuntu
+consul_version: 1.8.5
