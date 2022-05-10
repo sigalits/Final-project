@@ -4,12 +4,7 @@ resource "aws_security_group" "consul" {
   description = "security group for databases"
   vpc_id = var.vpc_id
 }
-# TODO: move to VPC common sg
-resource "aws_security_group" "common" {
-  name = var.security_group_common
-  description = "security group for all servers"
-  vpc_id = var.vpc_id
-}
+
 resource "aws_security_group" "consul_lb_sg" {
   name = var.security_group_consul_lb
   description = "security group for load balancers of consul"
@@ -40,39 +35,9 @@ resource "aws_security_group_rule" "consul_internal_access" {
     to_port     = 8301
     protocol = -1
     type= "ingress"
-    security_group_id = aws_security_group.common.id
+    security_group_id = var.common_sg_id
     self = true
     description = "Allow internal consul ports"
-}
-
-resource "aws_security_group_rule" "consul_ssh_access" {
-    from_port   = 22
-    to_port     = 22
-    protocol = "tcp"
-    type= "ingress"
-    security_group_id = aws_security_group.common.id
-    self = true
-    description = "Allow ssh access in vpc"
-}
-
-resource "aws_security_group_rule" "consul_ping" {
-    from_port   = 8
-    to_port     = 0
-    protocol = "icmp"
-    type= "ingress"
-    security_group_id = aws_security_group.common.id
-    self = true
-    description = "Allow ping "
-}
-
-resource "aws_security_group_rule" "consul_out" {
-    from_port   = 0
-    to_port     = 0
-    protocol = "-1"
-    type= "egress"
-    security_group_id = aws_security_group.common.id
-    cidr_blocks = ["0.0.0.0/0"]
-    description = "Allow access out "
 }
 
 resource "aws_security_group_rule" "lb_incomming" {
@@ -91,7 +56,7 @@ resource "aws_instance" "consul" {
   key_name = var.key_name
   instance_type = var.instance_type
   associate_public_ip_address = false
-  vpc_security_group_ids = [ aws_security_group.consul.id , aws_security_group.common.id ,aws_security_group.consul_lb_sg.id]
+  vpc_security_group_ids = [ aws_security_group.consul.id , var.common_sg_id ,aws_security_group.consul_lb_sg.id]
   iam_instance_profile   = aws_iam_instance_profile.consul-join.name
   subnet_id = element(var.subnet_ids,count.index)
   #user_data = file("${path.module}/user_data_db.sh")

@@ -12,6 +12,7 @@ module "vpc" {
   private_subnets = var.private_subnets
   public_subnets = var.public_subnets
   tag_name = var.tag_name
+  security_group_common="kandula-common-sg"
 }
 
 #Create security group for kandula servers
