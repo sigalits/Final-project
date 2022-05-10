@@ -56,7 +56,7 @@ variable "security_group_consul" {
     type = string
 }
 
-variable "security_group_common"{
+variable "common_sg_id"{
     description = "Name of security group"
     type = string
 }
@@ -68,7 +68,6 @@ variable "tag_name" {
     description = "Tag Name of for Ec2 instance"
     type = string
 }
-
 
 variable "ami_id" {
     description = "AMI for ubuntu"

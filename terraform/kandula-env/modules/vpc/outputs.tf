@@ -18,3 +18,7 @@ output "vpc_id" {
 output "main_route_table_id" {
   value = aws_vpc.vpc.main_route_table_id
 }
+
+output "common_sg_id" {
+  value = aws_security_group.common.id
+}

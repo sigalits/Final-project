@@ -84,10 +84,6 @@ variable "security_group_database" {
     default     = "kandula-database-sg"
 }
 
-variable "security_group_common"{
-    description = "Name of security group"
-    default = "kandula-common-sg"
-}
 variable "security_group_consul_lb"{
      description = "Name of security group"
      default = "kandula-consul_lb-sg"

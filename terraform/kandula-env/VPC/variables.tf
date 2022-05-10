@@ -44,5 +44,8 @@ variable "tag_name" {
     description = "Tag Name of for Ec2 instance"
     default     = "kandula"
 }
-
+variable "eks_cluster_name" {
+  description = "Eks cluster name"
+  default = "kandula-eks"
+}
 

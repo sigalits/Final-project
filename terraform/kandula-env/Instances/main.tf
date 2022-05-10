@@ -11,7 +11,7 @@ module "web-server" {
   subnet_ids = data.terraform_remote_state.vpc.outputs.public_subnets[*].id
   allow_cidr_blocks = concat([var.vpc_cidr],["${data.http.myip.body}/32"])
   security_group_kandula = data.terraform_remote_state.vpc.outputs.kandula_sg
-  common_security_group_id=module.consul.common_sg_id
+  common_security_group_id=data.terraform_remote_state.vpc.outputs.common_sg_id
   vpc_id = data.aws_vpc.vpc.id
   vpc_cidr = var.vpc_cidr
   ebs_data_size = var.ebs_data_size
@@ -55,7 +55,7 @@ module "consul" {
   vpc_id = data.aws_vpc.vpc.id
   vpc_cidr = var.vpc_cidr
   security_group_consul = var.security_group_consul
-  security_group_common = var.security_group_common
+  common_sg_id = data.terraform_remote_state.vpc.outputs.common_sg_id
   security_group_consul_lb = var.security_group_consul_lb
   tag_name = format("%s", "${var.tag_name}-consul")
   assume_role_policy = file("${path.module}/iam_policies/assume_role.json")
@@ -72,10 +72,19 @@ module "bastion" {
   vpc_id = data.aws_vpc.vpc.id
   vpc_cidr = var.vpc_cidr
   security_group_bastion = var.security_group_bastion
-  common_security_group_id=module.consul.common_sg_id
+  common_security_group_id=data.terraform_remote_state.vpc.outputs.common_sg_id
   tag_name = format("%s", "${var.tag_name}_bastion")
 }
 
+module "eks" {
+  source = "../modules/eks"
+  private_subnet_ids = data.terraform_remote_state.vpc.outputs.private_subnets[*].id
+  vpc_id = data.aws_vpc.vpc.id
+  tag_name=var.tag_name
+  common_security_group_id=data.terraform_remote_state.vpc.outputs.common_sg_id
+  cluster_name = format("%s", "${var.tag_name}_eks")
+  aws_region = var.aws_region
+}
 
 
 

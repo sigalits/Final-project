@@ -22,3 +22,7 @@ output "main_route_table_id" {
 output "kandula_sg" {
   value = aws_security_group.kandula-sg.id
 }
+
+output "common_sg_id" {
+  value = module.vpc.common_sg_id
+}

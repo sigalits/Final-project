@@ -26,3 +26,7 @@ variable "aws_region" {
        description = "The AWS region to create things in."
 }
 
+variable "security_group_common"{
+     description = "Name of security group"
+    type = string
+}
