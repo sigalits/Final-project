@@ -6,7 +6,7 @@
 # .tfstate files
 *.tfstate
 *.tfstate.*
-.terraform.lock.hcl
+**/pod_env.yaml
 # Crash log files
 crash.log
 

@@ -1,16 +1,12 @@
 # Local .terraform directories
-.DS_Store
-*.pem
 **/.terraform/*
-**/.idea/*
+
 # .tfstate files
 *.tfstate
 *.tfstate.*
-*/*.tfplan
-*/pod_env.yaml
+
 # Crash log files
 crash.log
-
 
 # Ignore any .tfvars files that are generated automatically for each Terraform run. Most
 # .tfvars files are managed as part of configuration and so should be included in
@@ -31,3 +27,5 @@ override.tf.json
 
 # Include tfplan files to ignore the plan output of command: terraform plan -out=tfplan
 # example: *tfplan*
+.terraform.lock.hcl
+kubeconfig_*
