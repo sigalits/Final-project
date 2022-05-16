@@ -1,0 +1,28 @@
+---
+- name: install dependency
+  apt:
+    name: python3-pip
+    state: latest
+    update_cache: yes
+
+- name: install python-consul
+  pip:
+    name: python-consul
+
+
+- name: register jenkins-server with http port 8080
+  consul:
+    service_name: "{{ inventory_hostname }}"
+    service_port: "8080" 
+    interval: 10s
+    http: http://localhost:8080
+  notify: restart consul
+  when : ( inventory_hostname  == 'jenkins-server' )
+
+- name: register jenkins-server with  port 22
+  consul:
+    service_name: "{{ inventory_hostname }}"
+    service_port: "22" 
+    interval: 10s
+  notify: restart consul
+  when : ( inventory_hostname  != 'jenkins-server' )

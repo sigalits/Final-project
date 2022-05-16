@@ -56,7 +56,7 @@ resource "aws_instance" "consul" {
   key_name = var.key_name
   instance_type = var.instance_type
   associate_public_ip_address = false
-  vpc_security_group_ids = [ aws_security_group.consul.id , var.common_sg_id ,aws_security_group.consul_lb_sg.id]
+  vpc_security_group_ids = [aws_security_group.consul.id , var.common_sg_id ,aws_security_group.consul_lb_sg.id]
   iam_instance_profile   = aws_iam_instance_profile.consul-join.name
   subnet_id = element(var.subnet_ids,count.index)
   #user_data = file("${path.module}/user_data_db.sh")
@@ -67,35 +67,7 @@ resource "aws_instance" "consul" {
 }
 
 
-# Create an IAM role for the auto-join
-resource "aws_iam_role" "consul-join" {
-  name               = "${var.tag_name}-consul-join"
-  assume_role_policy = var.assume_role_policy
-}
-
-# Create the policy
-resource "aws_iam_policy" "consul-join" {
-  name        = "${var.tag_name}-consul-join"
-  description = "Allows Consul nodes to describe instances for joining."
-  policy      = var.describe_instances_policy
-}
-
-# Attach the policy
-resource "aws_iam_policy_attachment" "consul-join" {
-  name       = "${var.tag_name}-consul-join"
-  roles      = [aws_iam_role.consul-join.name]
-  policy_arn = aws_iam_policy.consul-join.arn
-}
-
-# Create the instance profile
-resource "aws_iam_instance_profile" "consul-join" {
-  name = "${var.tag_name}-consul-join"
-  role = aws_iam_role.consul-join.name
-}
 
 
-output "consul-join-iam-role" {
-  description = "arn for consul-join iam role"
-  value       = aws_iam_role.consul-join.arn
-}
+
 

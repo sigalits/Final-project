@@ -53,7 +53,10 @@ variable "cidr_blocks" {
   type = list(string)
 }
 
-
+variable "attach_instance_profile" {
+  description = "Instance profile name to attach"
+  type = string
+}
 
 
 

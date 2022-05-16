@@ -12,3 +12,7 @@ output  "consul_server" {
 output "lb_consul_dns" {
   value = aws_lb.consul_lb[*].dns_name
 }
+
+output "consul_iam_instance_profile_name" {
+  value = aws_iam_instance_profile.consul-join.name
+}

@@ -21,6 +21,7 @@ terraform {
       source  = "hashicorp/template"
       version = "~> 2.2.0"
     }
+
   }
   backend "s3" {
     bucket = "terraform-state-kandula"

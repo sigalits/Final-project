@@ -1,6 +1,6 @@
 resource "aws_lb" "consul_lb" {
   count = var.create_consul_lb ? 1: 0
-  name            = "${var.tag_name}-lb"
+  name            = "${var.tag_name}-consul-lb"
   subnets         = var.public_subnet_ids
   security_groups = [aws_security_group.consul_lb_sg.id]
   load_balancer_type = "application"
@@ -38,12 +38,9 @@ resource "aws_lb_target_group" "consul-target-group" {
     enabled = true
     path    = "/ui/"
   }
-    tags = {
-    "name" = "${var.tag_name}-target-group-consul"
-  }
 }
 
-# restister targset to LB
+# register targset to LB
 
 resource "aws_lb_target_group_attachment" "consul_target_att" {
   count = var.create_consul_lb ? var.consul_instance_count : 0
