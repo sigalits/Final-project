@@ -46,18 +46,18 @@ terraform apply --auto-approve
 5) Instance provisioning for consul servers and consul agents
 install ansible dependencies
 
-cd ../../ansible
+cd ../../ansible/consul
 ansible-galaxy collection install amazon.aws
 ansible-galaxy collection install community.docker
 
 Run the ansible playbook
 ansible-playbook consul_setup.yml
 
-Adjustment
+#Adjustment
 1. Update current Jenkins url on GitHub app : https://github.com/settings/installations/25674329
 2. If Jenkins node key changed please update Jenkins server with new credentials
 
-Known issues:
+#Known issues:
 When applying terraform in some cases there's an issue with default tags. a consecutive apply usually resolves the issue.
 Error: Provider produced inconsistent final plan
 When expanding the plan for <some resource> to include new values learned so far during apply, provider "registry.terraform.io/hashicorp/aws" produced an
