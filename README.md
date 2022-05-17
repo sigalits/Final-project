@@ -1,7 +1,8 @@
 # Mid-project
 Environment for OpsSchool project
 
-Pre-requisites
+Pre-requisites:
+
 Terraform and ansible installed on local machine or machine to which this repo was cloned.
 To verify kube deployment kubectl need to be installed also. 
 
