@@ -1,5 +1,10 @@
 locals {
-  cluster_name = "${var.tag_name}-eks"
+  cluster_name = "${var.tag_name}-eks-${random_string.suffix.result}"
+}
+
+resource "random_string" "suffix" {
+  length  = 8
+  special = false
 }
 
 resource "aws_vpc" "vpc" {
@@ -46,19 +51,19 @@ resource "aws_subnet" "public" {
 
 
 
-##################
-# Database subnet
-##################
-resource "aws_subnet" "database" {
-  count =  length(var.database_subnets)
-
-  vpc_id                          = aws_vpc.vpc.id
-  cidr_block                      = var.database_subnets[count.index]
-  availability_zone               = var.azs[count.index]
-
-  tags ={ "Name" = format(  "%s-database-%s",  var.tag_name,  var.azs[count.index],)
-    }
- }
+###################
+## Database subnet
+###################
+#resource "aws_subnet" "database" {
+#  count =  length(var.database_subnets)
+#
+#  vpc_id                          = aws_vpc.vpc.id
+#  cidr_block                      = var.database_subnets[count.index]
+#  availability_zone               = var.azs[count.index]
+#
+#  tags ={ "Name" = format(  "%s-database-%s",  var.tag_name,  var.azs[count.index],)
+#    }
+# }
 
 ##################
 # private subnet

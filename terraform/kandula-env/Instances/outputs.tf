@@ -1,14 +1,14 @@
-output "ec2_private_ip_kandula_instance" {
-  value = module.web-server.kandula_private_ips[*]
-}
-
-output "ec2_public_ip_kandula_instance" {
-  value = module.web-server.kandula_public_ips[*]
-}
-
-output "ec2_private_ip_database_instance" {
-  value = module.database.database_servers_ips[*]
-}
+#output "ec2_private_ip_kandula_instance" {
+#  value = module.web-server.kandula_private_ips[*]
+#}
+#
+#output "ec2_public_ip_kandula_instance" {
+#  value = module.web-server.kandula_public_ips[*]
+#}
+#
+#output "ec2_private_ip_database_instance" {
+#  value = module.database.database_servers_ips[*]
+#}
 
 output "ec2_private_ip_consul_instance" {
   value = module.consul.consul_servers_ips[*]
@@ -48,4 +48,24 @@ output "cluster_name" {
 
 output "oidc_provider_arn" {
   value = module.eks.oidc_provider_arn
+}
+
+output "Jenkins_nodes_ip" {
+  value = aws_instance.jenkins-node[*].private_ip
+}
+
+output "consul_lb" {
+  value = module.consul.lb_consul_dns
+}
+
+output "bastion_ip" {
+  value = module.bastion.bastion_servers_public_ips[0]
+}
+
+output "Jenkins_alb" {
+  value = data.terraform_remote_state.vpc.outputs.jenkins_alb
+}
+
+output "consul_alb" {
+  value = module.consul.lb_consul_dns
 }

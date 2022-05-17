@@ -8,6 +8,24 @@ data "aws_ami" "ubuntu-18" {
   }
 }
 
+data "aws_ami" "jenkins-ami" {
+  most_recent = true
+  owners      = ["797686858489"]
+
+  filter {
+    name   = "name"
+    values = ["jenkins-master*"]
+  }
+}
+
+data "aws_secretsmanager_secret_version" "secret" {
+  secret_id = "aws_keys_kandula"
+}
+
+data "external" "secret_json" {
+  program = ["echo", "${data.aws_secretsmanager_secret_version.secret.secret_string}"]
+}
+
 data "aws_availability_zones" "available" {
   state = "available"
 }

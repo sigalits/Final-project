@@ -1,12 +1,25 @@
+resource "aws_security_group" "all_worker_mgmt" {
+  name_prefix = "${var.tag_name}-eks-worker-management-sg"
+  vpc_id      = var.vpc_id
+
+  ingress {
+    from_port = 22
+    to_port   = 22
+    protocol  = "tcp"
+
+    cidr_blocks = [ var.vpc_cidr ]
+  }
+}
+
 module "eks" {
   source          = "terraform-aws-modules/eks/aws"
   version         = "18.6.1"
   cluster_name    = var.cluster_name
   cluster_version = var.kubernetes_version
-  subnet_ids         = var.private_subnet_ids
+  subnet_ids      = var.private_subnet_ids
 
   enable_irsa = true
-  
+
   tags = {
     Environment = "Kandula"
     GithubRepo  = "terraform-aws-eks"
@@ -16,33 +29,43 @@ module "eks" {
   vpc_id = var.vpc_id
 
   eks_managed_node_group_defaults = {
-      ami_type               = "AL2_x86_64"
-      #instance_types         = ["t3.medium"]
-      instance_types = ["t3.micro"]
-      vpc_security_group_ids = [var.common_security_group_id]
+    ami_type               = "AL2_x86_64"
+    #instance_types         = ["t3.medium"]
+    instance_types         = ["t3.micro"]
+    vpc_security_group_ids = [aws_security_group.all_worker_mgmt.id]
   }
 
   eks_managed_node_groups = {
-    
+
     group_1 = {
-      min_size     = 2
-      max_size     = 6
-      desired_size = 2
+      min_size       = 2
+      max_size       = 6
+      desired_size   = 2
       #instance_types = ["t3.medium"]
       instance_types = ["t3.micro"]
     }
 
     group_2 = {
-      min_size     = 2
-      max_size     = 6
-      desired_size = 2
-      #instance_types = ["t3.medium"]
-      instance_types = ["t3.large"]
+      min_size       = 2
+      max_size       = 6
+      desired_size   = 2
+      instance_types = ["t3.medium"]
+      #instance_types = ["t3.large"]
 
     }
   }
 }
 
+resource "null_resource" "module_guardian" {
+
+  triggers = {
+    eqs_id = module.eks.cluster_id
+  }
+
+  lifecycle {
+    prevent_destroy = true
+  }
+}
 data "aws_eks_cluster" "eks" {
   name = module.eks.cluster_id
 }

@@ -24,28 +24,36 @@ variable "aws_region" {
        default     = "us-east-1"
 }
 
-
-
-variable "security_group_kandula" {
-    description = "Name of security group"
-    default     = "kandula-web-sg"
-}
 variable "security_group_alb" {
     description = "Name of security group"
     default     = "kandula-alb-sg"
 }
 
-variable "security_group_database" {
+variable "security_group_jenkins" {
     description = "Name of security group"
-    default     = "kandula-database-sg"
+    default     = "kandula-jenkins-sg"
 }
 
 variable "tag_name" {
     description = "Tag Name of for Ec2 instance"
     default     = "kandula"
 }
-variable "eks_cluster_name" {
-  description = "Eks cluster name"
-  default = "kandula-eks"
+
+variable "jenkins_server_private_ip"{
+  description = "List of private ip's for Jenkins nodes"
+  default = "10.0.21.21"
 }
 
+variable "jenkins_bucket_name" {
+  description = "S3 bucket name for kandula log"
+  default = "kandula-jenkins-backup"
+}
+
+variable "acl_value" {
+    default = "private"
+}
+
+variable "jenkins_key" {
+  description = "Jenkins Nodes Pem Keys"
+  default = "sigal_jenkins_ec2_key"
+}

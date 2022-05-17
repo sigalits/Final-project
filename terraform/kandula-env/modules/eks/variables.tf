@@ -18,3 +18,4 @@ variable "tag_name" {
   type = string
 }
 variable "common_security_group_id" {}
+variable "vpc_cidr" {}

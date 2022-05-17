@@ -39,13 +39,6 @@ variable "key_name" {
     type = string
 }
 
-variable "assume_role_policy" {
-  description = "assume role Policy in json"
-}
-
-variable "describe_instances_policy" {
-  description = "describe instances policy Policy in json"
-}
 variable "instance_type" {
     description = "instance type for ec2"
     type = string
@@ -80,6 +73,16 @@ variable "cidr_blocks" {
 }
 
 
+variable "iam_instance_profile_name" {
+  default = "Consul-join instance profile"
+  type = string
+}
 
+variable "lb_arn" {
+  description = "Lb arn from vpn/module"
+}
 
+variable "lb_sg_id" {
+  description = "Load blance Security group"
+}
 

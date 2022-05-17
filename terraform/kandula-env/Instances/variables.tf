@@ -15,12 +15,12 @@ variable "aws_region" {
 variable "create_lb" {
   description = "Do we Want to create LB"
   type = bool
-  default = false
+  default = true
 }
 variable "create_consul_lb" {
   description = "Do we Want to create LB"
   type = bool
-  default = false
+  default = true
 }
 
 
@@ -44,6 +44,11 @@ variable "key_name" {
     default     = "kandula_key"
 }
 
+variable "jenkins_key_name" {
+    description = "SSH keys to connect to ec2 instance"
+    default     = "sigal_jenkins_ec2_key"
+}
+
 
 variable "force_destroy" {
   description = "to enable force destory on s3 bucket"
@@ -51,15 +56,6 @@ variable "force_destroy" {
   default = false
 }
 
-variable "create_webservers" {
-  description = "do we want to create web servers now?"
-  type = bool
-}
-
-variable "create_dbservers" {
-  description = "do we want to create db servers now?"
-  type = bool
-}
 variable "create_consul_servers" {
   description = "do we want to create db servers now?"
   type = bool
@@ -93,6 +89,13 @@ variable "security_group_consul" {
     description = "Name of security group"
     default     = "kandula-consul-sg"
 }
+
+variable "security_group_jenkins_lb" {
+    description = "Name of security group"
+    default     = "kandula-jenkins-lb-sg"
+}
+
+
 variable "security_group_bastion" {
     description = "Name of security group"
     default     = "kandula-bastion-sg"
@@ -124,6 +127,11 @@ variable "acl_value" {
     default = "private"
 }
 
+variable "jenkins_bucket_name" {
+  description = "S3 bucket name for kandula log"
+  default = "kandul-jenkins-backup"
+}
+
 variable "bucket_name" {
   description = "S3 bucket name for kandula log"
   default = "kandula-log"
@@ -133,3 +141,20 @@ variable "consul_ami_id" {
   description = "Ubuntu 21.10 ami"
   default = "ami-0fcda042dd8ae41c7"
 }
+
+variable "jenkins_nodes_count" {
+  description = "Number of Jenkins nodes"
+  default = 2
+}
+
+variable "jenkins_node_private_ip"{
+  description = "List of private ip's for Jenkins nodes"
+  default = ["10.0.21.10","10.0.22.10"]
+}
+
+variable "jenkins_server_private_ip"{
+  description = "List of private ip's for Jenkins nodes"
+  default = "10.0.21.21"
+}
+
+

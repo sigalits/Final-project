@@ -46,10 +46,12 @@ resource "aws_instance" "bastion" {
   associate_public_ip_address = true
   vpc_security_group_ids = [ aws_security_group.bastion.id ,var.common_security_group_id]
   subnet_id = var.subnet_ids[0]
+  iam_instance_profile   = var.attach_instance_profile
   #user_data = file("${path.module}/user_data_db.sh")
   tags = {
     "Name" = "${var.tag_name}"
     "bastion_server" = "true"
+    "consul_agent"   = "true"
   }
     metadata_options {
     http_endpoint          = "enabled"
