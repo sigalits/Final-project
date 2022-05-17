@@ -25,7 +25,7 @@ tf apply --auto-approve
 
 
 Provision the project environment 
-1) Creating VPC / subnets/ common_sg/ jenkins server 
+3) Creating VPC / subnets/ common_sg/ jenkins server 
 
 cd ../kandula_env/VPC
 
@@ -35,15 +35,15 @@ cd ../kandula_env/VPC
 terraform init
 terraform apply --auto-approve
 
-2) Creating Consul / Jenkins nodes/ eks / bastion
+4) Creating Consul / Jenkins nodes/ eks / bastion
 
 cd ../Instances
 terraform apply --auto-approve
 
-3) setting ssh/.ssh_config for anisble provisioning
+5) setting ssh/.ssh_config for anisble provisioning
  in ../Instances/apply_settings.sh
 
-5) Instance provisioning for consul servers and consul agents
+6) Instance provisioning for consul servers and consul agents
 install ansible dependencies
 
 cd ../../ansible/consul
@@ -53,11 +53,11 @@ ansible-galaxy collection install community.docker
 Run the ansible playbook
 ansible-playbook consul_setup.yml
 
-#Adjustment
+# Adjustment
 1. Update current Jenkins url on GitHub app : https://github.com/settings/installations/25674329
 2. If Jenkins node key changed please update Jenkins server with new credentials
 
-#Known issues:
+# Known issues:
 When applying terraform in some cases there's an issue with default tags. a consecutive apply usually resolves the issue.
 Error: Provider produced inconsistent final plan
 When expanding the plan for <some resource> to include new values learned so far during apply, provider "registry.terraform.io/hashicorp/aws" produced an
