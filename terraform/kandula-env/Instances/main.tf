@@ -74,8 +74,6 @@ module "eks" {
   cluster_name = data.terraform_remote_state.vpc.outputs.eks_cluster_name
   aws_region = var.aws_region
   vpc_cidr = var.vpc_cidr
-  eks_g1_instance_types = var.eks_g1_instance_types
-  eks_g2_instance_types = var.eks_g2_instance_types
 }
 
 resource "time_sleep" "wait_90_seconds" {

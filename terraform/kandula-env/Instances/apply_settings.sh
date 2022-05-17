@@ -1,19 +1,23 @@
 #! /bin/bash
-echo "get bastion"
 BASTION_IP=$(terraform output bastion_ip)
-echo "get ips"
 bastion=$(echo ${BASTION_IP} | sed 's/"//g')
-echo "get cluster name"
-cluster_name=$(terraform output Jenkins_alb_dns)
-cluster_name=$(echo ${Jenkins_alb_dns} | sed 's/"//g')
-echo ${cluster_name}
-echo "get LB url for Jenkins"
-alb_jenkins=$(terraform output Jenkins_alb_dns)
+echo "BASTION address is " ${bastion}
+echo ""
+cluster_name=$(terraform output cluster_name)
+cluster_name=$(echo ${cluster_name} | sed 's/"//g')
+echo "EKS Cluster name is :" ${cluster_name}
+alb_jenkins=$(terraform output Jenkins_alb)
 alb_jenkins=$(echo ${alb_jenkins} | sed 's/"//g')
-echo ${alb_jenkins}
+consul_alb=$(terraform output consul_alb)
+consul_alb=$(echo ${consul_alb} | awk -F\" '{print $2}')
 
-echo "create config"
-mv ~/.ssh/config ~/.ssh/config.old
+echo "Please run Jenkins job "
+echo "            ${alb_jenkins}:8080/job/kandula-build-pipeline/job/mid-project/ "
+echo ""
+echo ""
+echo "creating ssh/config file...."
+mv ~/.ssh/config ~/.ssh/config.save_$$
+current_dir=$(pwd)
 cat <<EOT > ~/.ssh/config
 Host bastion
     StrictHostKeyChecking no
@@ -21,11 +25,15 @@ Host bastion
     User ubuntu
     ForwardAgent yes
     UserKnownHostsFile /dev/null
-    IdentityFile /home/pixellot/mid-project/terraform/bastion_key.pem
+    IdentityFile ${current_dir}/../../initial_config/kandula.pem
+    HostKeyAlgorithms=ecdsa-sha2-nistp256
+    FingerprintHash=sha256
+    StrictHostKeyChecking accept-new
+
 Host jenkins_server
     HostName 10.0.21.21
     User ubuntu
-    IdentityFile /Users/user/jenkins.pem
+    IdentityFile ${HOME}/jenkins.pem
     ProxyJump bastion
     StrictHostKeyChecking accept-new
     ForwardAgent yes
@@ -36,7 +44,7 @@ Host jenkins_server
 Host jenkins_agent1
     HostName 10.0.21.10
     User ubuntu
-    IdentityFile /Users/user/jenkins.pem
+    IdentityFile ${HOME}/jenkins.pem
     ProxyJump bastion
     StrictHostKeyChecking accept-new
     ForwardAgent yes
@@ -47,7 +55,7 @@ Host jenkins_agent1
 Host jenkins_agent2
     HostName 10.0.22.10
     User ubuntu
-    IdentityFile /Users/user/jenkins.pem
+    IdentityFile ${HOME}/jenkins.pem
     ProxyJump bastion
     StrictHostKeyChecking accept-new
     ForwardAgent yes
@@ -55,18 +63,9 @@ Host jenkins_agent2
     HostKeyAlgorithms=ecdsa-sha2-nistp256
     FingerprintHash=sha256
 
-Host bastion
-    HostName ${bastion}
-    User ubuntu
-    IdentityFile /Users/user/PycharmProjects/Mid-project/terraform/initial_config/kandula.pem
-    ForwardAgent yes
-    SendEnv yes
-    UserKnownHostsFile /dev/null
-    StrictHostKeyChecking accept-new
-
 Host 10.0.*.*
     User ubuntu
-    IdentityFile /Users/user/PycharmProjects/Mid-project/terraform/initial_config/kandula.pem
+    IdentityFile ${current_dir}/../../initial_config/kandula.pem
     ProxyJump bastion
     StrictHostKeyChecking accept-new
     ForwardAgent yes
@@ -75,5 +74,10 @@ Host 10.0.*.*
     FingerprintHash=sha256
 EOT
 
-echo "Please run job ${alb_jenkins}:8080/job/kandula-build-pipeline/job/mid-project/  to start application "
-echo "Use kubectl get svc to find kandula-app dns address"
+echo "Use \" kubectl get svc \" to find kandula-app dns address"
+echo ""
+echo "Consul Dns is : ${consul_alb}"
+echo ""
+echo "For proceeding with Ansible deployment "
+echo "cd to ${current_dir}/../../../ansible/consul"
+echo "and run ansible-playbook consul_setup.yml"

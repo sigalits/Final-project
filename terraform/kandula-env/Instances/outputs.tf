@@ -61,3 +61,11 @@ output "consul_lb" {
 output "bastion_ip" {
   value = module.bastion.bastion_servers_public_ips[0]
 }
+
+output "Jenkins_alb" {
+  value = data.terraform_remote_state.vpc.outputs.jenkins_alb
+}
+
+output "consul_alb" {
+  value = module.consul.lb_consul_dns
+}

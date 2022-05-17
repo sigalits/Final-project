@@ -41,6 +41,10 @@ output "lb_jenkins_sg_id" {
   value = aws_security_group.jenkins_lb_sg.id
 }
 
+output "jenkins_alb" {
+  value = module.jenkins_server.lb_jenkins_dns
+}
+
 output "common_sg_id" {
   value = module.vpc.common_sg_id
 }

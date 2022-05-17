@@ -15,12 +15,12 @@ variable "aws_region" {
 variable "create_lb" {
   description = "Do we Want to create LB"
   type = bool
-  default = false
+  default = true
 }
 variable "create_consul_lb" {
   description = "Do we Want to create LB"
   type = bool
-  default = false
+  default = true
 }
 
 
