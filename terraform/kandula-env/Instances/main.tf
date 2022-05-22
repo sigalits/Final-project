@@ -6,7 +6,7 @@ locals {
 
 
 resource "aws_instance" "jenkins-node" {
-  count = var.jenkins_nodes_count
+  count = var.create_jenkins_servers ? var.jenkins_nodes_count: 0
   private_ip = element(var.jenkins_node_private_ip,count.index)
   ami = var.consul_ami_id
   instance_type               = var.instance_type
@@ -49,6 +49,7 @@ module "consul" {
   security_group_consul_lb = var.security_group_consul_lb
   tag_name = format("%s", "${var.tag_name}-consul")
   }
+
 module "bastion" {
   source = "../modules/bastion"
   ami_id = data.aws_ami.ubuntu-18.id

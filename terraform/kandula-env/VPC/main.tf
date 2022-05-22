@@ -19,7 +19,7 @@ module "jenkins_server"  {
   source = "../modules/jenkins_server"
   private_ip = var.jenkins_server_private_ip
   ami_id = data.aws_ami.jenkins-ami.id
-  instance_type               = "t3.medium"
+  instance_type               = "t3.micro"
   key_name                    = var.jenkins_key
   subnet_id                   = module.vpc.private_subnets[0].id
   public_subnet_ids           = module.vpc.public_subnets.*.id
@@ -32,6 +32,22 @@ module "jenkins_server"  {
   tag_name = var.tag_name
 }
 
+resource "aws_route53_zone" "myZone" {
+  count = var.create_dns ? 1 : 0
+  name = "sigalits.kandula.com"
+}
 
+
+resource "aws_route53_record" "myRecord" {
+  zone_id = aws_route53_zone.myZone[0].zone_id
+  name    = "www.sigalits.kandula.com" # OR "www.example.com"
+  type    = "A" # OR "AAAA"
+
+  alias {
+      name                   = module.jenkins_server.lb_jenkins_dns
+      zone_id                = module.jenkins_server.lb_zone_id
+      evaluate_target_health = false
+  }
+}
 
 

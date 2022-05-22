@@ -15,3 +15,7 @@ output "lb_jenkins_dns" {
 output "lb_arn" {
   value = aws_lb.lb.arn
 }
+
+output "lb_zone_id" {
+  value = aws_lb.lb.zone_id
+}

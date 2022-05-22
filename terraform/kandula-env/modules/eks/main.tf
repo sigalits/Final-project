@@ -56,16 +56,16 @@ module "eks" {
   }
 }
 
-resource "null_resource" "module_guardian" {
-
-  triggers = {
-    eqs_id = module.eks.cluster_id
-  }
-
-  lifecycle {
-    prevent_destroy = true
-  }
-}
+#resource "null_resource" "module_guardian" {
+#
+#  triggers = {
+#    eqs_id = module.eks.cluster_id
+#  }
+#
+#  lifecycle {
+#    prevent_destroy = true
+#  }
+#}
 data "aws_eks_cluster" "eks" {
   name = module.eks.cluster_id
 }

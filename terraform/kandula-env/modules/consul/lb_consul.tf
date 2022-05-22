@@ -1,11 +1,11 @@
-resource "aws_lb" "consul_lb" {
-  count = var.create_consul_lb ? 1: 0
-  name            = "${var.tag_name}-consul-lb"
-  subnets         = var.public_subnet_ids
-  security_groups = [aws_security_group.consul_lb_sg.id]
-  load_balancer_type = "application"
-  enable_cross_zone_load_balancing = true
-}
+#resource "aws_lb" "consul_lb" {
+#  count = var.create_consul_lb ? 1: 0
+#  name            = "${var.tag_name}-consul-lb"
+#  subnets         = var.public_subnet_ids
+#  security_groups = [aws_security_group.consul_lb_sg.id]
+#  load_balancer_type = "application"
+#  enable_cross_zone_load_balancing = true
+#}
 # sg_lb includes:
 #   port 80 open to 0.0.0.0/0
 #sg_consul servers
@@ -22,8 +22,10 @@ resource "aws_lb_listener" "consul-alb-listener" {
     target_group_arn = aws_lb_target_group.consul-target-group[0].arn
     type = "forward"
   }
-  load_balancer_arn = aws_lb.consul_lb[0].arn
-  port = 80
+  load_balancer_arn = var.lb_arn
+  #load_balancer_arn = aws_lb.consul_lb[0].arn
+  #port = 80
+  port = 8500
   protocol = "HTTP"
 }
 

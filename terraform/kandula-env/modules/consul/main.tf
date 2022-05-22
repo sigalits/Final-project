@@ -1,7 +1,7 @@
 #Create security group for database servers
 resource "aws_security_group" "consul" {
   name = var.security_group_consul
-  description = "security group for databases"
+  description = "security group for consul servers"
   vpc_id = var.vpc_id
 }
 
@@ -17,7 +17,8 @@ resource "aws_security_group_rule" "ui_access" {
     protocol = "tcp"
     type= "ingress"
     security_group_id = aws_security_group.consul.id
-    source_security_group_id = aws_security_group.consul_lb_sg.id
+    source_security_group_id = var.lb_sg_id
+    #source_security_group_id = aws_security_group.consul_lb_sg.id
     description = "Allow ui port"
 }
 resource "aws_security_group_rule" "ui_access_out" {
@@ -25,7 +26,8 @@ resource "aws_security_group_rule" "ui_access_out" {
     to_port     = 8500
     protocol = "tcp"
     type= "egress"
-    security_group_id = aws_security_group.consul_lb_sg.id
+    security_group_id = var.lb_sg_id
+    #security_group_id = aws_security_group.consul_lb_sg.id
     self = true
     description = "open ui out port"
 }
@@ -45,7 +47,8 @@ resource "aws_security_group_rule" "lb_incomming" {
     to_port     = 80
     protocol = "tcp"
     type= "ingress"
-    security_group_id = aws_security_group.consul_lb_sg.id
+    security_group_id = var.lb_sg_id
+  # security_group_id = aws_security_group.consul_lb_sg.id
     cidr_blocks = ["0.0.0.0/0"]
     description = "Allow access out "
 }

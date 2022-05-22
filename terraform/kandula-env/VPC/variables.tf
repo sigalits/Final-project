@@ -57,3 +57,8 @@ variable "jenkins_key" {
   description = "Jenkins Nodes Pem Keys"
   default = "sigal_jenkins_ec2_key"
 }
+
+variable "create_dns" {
+  type = bool
+  default = true
+}

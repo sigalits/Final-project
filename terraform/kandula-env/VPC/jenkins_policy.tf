@@ -8,7 +8,7 @@ resource "aws_iam_role" "jenkins" {
 resource "aws_iam_policy" "jenkins" {
   name        = "${var.tag_name}-jenkins"
   description = "Allows get secrets."
-  policy      = templatefile("${path.module}/iam_policies/jenkis_permissions.j2" , {bucket = var.jenkins_bucket_name}
+  policy      = templatefile("${path.module}/iam_policies/jenkis_permissions.tftpl" , {bucket = var.jenkins_bucket_name}
                  )
 }
 

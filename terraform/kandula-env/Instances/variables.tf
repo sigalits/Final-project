@@ -142,6 +142,10 @@ variable "consul_ami_id" {
   default = "ami-0fcda042dd8ae41c7"
 }
 
+variable "create_jenkins_servers"{
+  type = bool
+  default = true
+}
 variable "jenkins_nodes_count" {
   description = "Number of Jenkins nodes"
   default = 2
