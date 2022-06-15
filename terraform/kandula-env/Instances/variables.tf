@@ -23,6 +23,9 @@ variable "create_consul_lb" {
   default = true
 }
 
+variable "create_eks" {
+  default = false
+}
 
 variable "kandula_instance_count" {
        description = "Number of instances."

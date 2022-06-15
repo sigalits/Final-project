@@ -58,7 +58,13 @@ variable "jenkins_key" {
   default = "sigal_jenkins_ec2_key"
 }
 
-variable "create_dns" {
+
+variable "create_lb" {
+  description = "Do we Want to create LB"
   type = bool
-  default = true
+  default = false
+}
+
+variable "domain_name" {
+  default = "sigalits.com"
 }

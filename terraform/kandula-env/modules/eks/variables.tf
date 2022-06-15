@@ -19,3 +19,7 @@ variable "tag_name" {
 }
 variable "common_security_group_id" {}
 variable "vpc_cidr" {}
+variable "jenkins_role_arn" {}
+variable "access_key" {}
+variable "secret_key" {}
+#variable "create_eks" {}

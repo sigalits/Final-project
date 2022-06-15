@@ -18,12 +18,16 @@ sudo usermod -aG docker ubuntu
 echo "***** Defining eks cluster *****"
 aws eks update-kubeconfig --region ${region} --name ${eks_cluster}
 aws configure --profile default set region ${region}
-aws configure --profile default set aws_access_key_id `echo ${access_key}  | base64 --decode`
-aws configure --profile default set aws_secret_access_key `echo ${secret_key}  | base64 --decode`
 cp -rp ~root/.aws ~ubuntu/
 chown -R ubuntu:ubuntu ~ubuntu/.aws
 cp -rp ~root/.kube ~ubuntu/
 chown -R ubuntu:ubuntu ~ubuntu/.kube
 
+echo "***** Installing trivy *****"
+sudo apt-get install wget apt-transport-https gnupg lsb-release
+wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
+echo deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main | sudo tee -a /etc/apt/sources.list.d/trivy.list
+sudo apt-get update
+sudo apt-get install trivy
 
 

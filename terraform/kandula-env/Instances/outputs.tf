@@ -54,9 +54,6 @@ output "Jenkins_nodes_ip" {
   value = aws_instance.jenkins-node[*].private_ip
 }
 
-output "consul_lb" {
-  value = module.consul.lb_consul_dns
-}
 
 output "bastion_ip" {
   value = module.bastion.bastion_servers_public_ips[0]

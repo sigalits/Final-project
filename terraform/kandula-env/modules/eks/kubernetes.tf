@@ -18,3 +18,16 @@ resource "kubernetes_service_account" "kandula_eks_sa" {
   }
   depends_on = [module.eks]
 }
+
+resource "kubernetes_secret" "kandula_secret" {
+  metadata {
+    name = "kandula-secret"
+   # namespace = local.k8s_service_account_namespace
+  }
+  binary_data = {
+      "AWS_ACCESS_KEY_ID" = var.access_key
+      "AWS_SECRET_ACCESS_KEY" = var.secret_key
+      }
+  type = "Opaque"
+  depends_on = [module.eks]
+  }

@@ -1,5 +1,5 @@
 ---
 
 - include: consul_install.yml
-- include: register_service.yml
+- include: register_service.yml #webserver_service.yml
   when: groups['consul_agent'] is defined and inventory_hostname in groups['consul_agent']

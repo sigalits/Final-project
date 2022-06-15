@@ -1,18 +1,30 @@
 resource "aws_lb" "lb" {
+  count = var.create_lb ? 1: 0
   name            = "${var.tag_name}-jenkins-lb"
   subnets         = var.public_subnet_ids
-  security_groups = [var.jenkins_lb_sg ]
+  security_groups = [aws_security_group.jenkins_lb_sg.id ]
   load_balancer_type = "application"
   enable_cross_zone_load_balancing = true
 }
 
 # Create a Listener
 resource "aws_lb_listener" "jenkins-alb-listener" {
+  count = var.create_lb ? 1: 0
+  #default_action {
+  #  target_group_arn = aws_lb_target_group.jenkins_target-group.arn
+  #  type = "forward"
+  #}
   default_action {
     target_group_arn = aws_lb_target_group.jenkins_target-group.arn
-    type = "forward"
+    type = "redirect"
+
+    redirect {
+      port        = "443"
+      protocol    = "HTTPS"
+      status_code = "HTTP_301"
+    }
   }
-  load_balancer_arn = aws_lb.lb.arn
+  load_balancer_arn = aws_lb.lb[0].arn
   port = 8080
   protocol = "HTTP"
 }
@@ -34,7 +46,20 @@ resource "aws_lb_target_group" "jenkins_target-group" {
   }
 }
 
-# register targset to LB
+resource "aws_alb_listener" "jenkins_https_alb" {
+  count = var.create_lb ? 1: 0
+  load_balancer_arn = aws_lb.lb[0].arn
+  port              = "443"
+  protocol          = "HTTPS"
+  ssl_policy        = "ELBSecurityPolicy-2016-08"
+  certificate_arn   = var.aws_acm_certificate_arn
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.jenkins_target-group.arn
+  }
+}
+
+# register target to LB
 
 resource "aws_lb_target_group_attachment" "target_att" {
   target_group_arn = aws_lb_target_group.jenkins_target-group.arn
