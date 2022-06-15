@@ -6,7 +6,7 @@ locals {
 
 
 resource "aws_instance" "jenkins-node" {
-  count = var.jenkins_nodes_count
+  count = var.create_jenkins_servers ? var.jenkins_nodes_count: 0
   private_ip = element(var.jenkins_node_private_ip,count.index)
   ami = var.consul_ami_id
   instance_type               = var.instance_type
@@ -16,11 +16,9 @@ resource "aws_instance" "jenkins-node" {
   associate_public_ip_address = false
   vpc_security_group_ids      = [data.terraform_remote_state.vpc.outputs.common_sg_id, data.terraform_remote_state.vpc.outputs.jenkins_server_sg]
   depends_on                  = [module.bastion, module.eks]
-  user_data = templatefile("${path.module}/user_data_jenkins.sh" , {
+  user_data = templatefile("${path.module}/../templates/user_data_jenkins_slave.sh" , {
               eks_cluster = data.terraform_remote_state.vpc.outputs.eks_cluster_name,
-              region = var.aws_region,
-              access_key = local.access_key,
-              secret_key = local.secret_key})
+              region = var.aws_region})
   tags = {
     Name = "jenkins-node-${count.index}"
     consul_agent: "true"
@@ -47,8 +45,11 @@ module "consul" {
   security_group_consul = var.security_group_consul
   common_sg_id = data.terraform_remote_state.vpc.outputs.common_sg_id
   security_group_consul_lb = var.security_group_consul_lb
+  r53_zone_id = data.aws_route53_zone.selected.zone_id
+  acm_certificate_arn = data.terraform_remote_state.vpc.outputs.acm_certificate_arn
   tag_name = format("%s", "${var.tag_name}-consul")
   }
+
 module "bastion" {
   source = "../modules/bastion"
   ami_id = data.aws_ami.ubuntu-18.id
@@ -69,11 +70,15 @@ module "eks" {
   source = "../modules/eks"
   private_subnet_ids = data.terraform_remote_state.vpc.outputs.private_subnets[*].id
   vpc_id = data.aws_vpc.vpc.id
+  jenkins_role_arn=data.terraform_remote_state.vpc.outputs.jenkins_iam_role_arn
   tag_name=var.tag_name
   common_security_group_id=data.terraform_remote_state.vpc.outputs.common_sg_id
   cluster_name = data.terraform_remote_state.vpc.outputs.eks_cluster_name
   aws_region = var.aws_region
   vpc_cidr = var.vpc_cidr
+  access_key = local.access_key
+  secret_key = local.secret_key
+  #create_eks = var.create_eks
 }
 
 resource "time_sleep" "wait_90_seconds" {
@@ -86,6 +91,7 @@ resource "null_resource" "update_kubectl_configuration" {
     command = "aws eks update-kubeconfig --region ${var.aws_region} --name ${data.terraform_remote_state.vpc.outputs.eks_cluster_name}"
   }
 }
+
 
 
 #module "web-server" {

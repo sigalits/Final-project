@@ -13,13 +13,21 @@ resource "aws_security_group" "all_worker_mgmt" {
 
 module "eks" {
   source          = "terraform-aws-modules/eks/aws"
-  version         = "18.6.1"
+  #version         = "18.6.1"
+  version         = "18.20"
   cluster_name    = var.cluster_name
   cluster_version = var.kubernetes_version
   subnet_ids      = var.private_subnet_ids
 
   enable_irsa = true
-
+  manage_aws_auth_configmap = true
+  aws_auth_roles = [
+    {
+      rolearn  = var.jenkins_role_arn
+      username = "system:node:{{EC2PrivateDNSName}}"
+      groups   = ["system:masters"]
+    }
+  ]
   tags = {
     Environment = "Kandula"
     GithubRepo  = "terraform-aws-eks"
@@ -54,18 +62,19 @@ module "eks" {
 
     }
   }
+
 }
 
-resource "null_resource" "module_guardian" {
-
-  triggers = {
-    eqs_id = module.eks.cluster_id
-  }
-
-  lifecycle {
-    prevent_destroy = true
-  }
-}
+#resource "null_resource" "module_guardian" {
+#
+#  triggers = {
+#    eqs_id = module.eks.cluster_id
+#  }
+#
+#  lifecycle {
+#    prevent_destroy = true
+#  }
+#}
 data "aws_eks_cluster" "eks" {
   name = module.eks.cluster_id
 }

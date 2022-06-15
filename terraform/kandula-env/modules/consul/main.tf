@@ -1,7 +1,7 @@
 #Create security group for database servers
 resource "aws_security_group" "consul" {
   name = var.security_group_consul
-  description = "security group for databases"
+  description = "security group for consul servers"
   vpc_id = var.vpc_id
 }
 
@@ -17,6 +17,7 @@ resource "aws_security_group_rule" "ui_access" {
     protocol = "tcp"
     type= "ingress"
     security_group_id = aws_security_group.consul.id
+    #source_security_group_id = var.lb_sg_id
     source_security_group_id = aws_security_group.consul_lb_sg.id
     description = "Allow ui port"
 }
@@ -25,6 +26,7 @@ resource "aws_security_group_rule" "ui_access_out" {
     to_port     = 8500
     protocol = "tcp"
     type= "egress"
+    ##security_group_id = var.lb_sg_id
     security_group_id = aws_security_group.consul_lb_sg.id
     self = true
     description = "open ui out port"
@@ -45,9 +47,21 @@ resource "aws_security_group_rule" "lb_incomming" {
     to_port     = 80
     protocol = "tcp"
     type= "ingress"
+    ##security_group_id = var.lb_sg_id
     security_group_id = aws_security_group.consul_lb_sg.id
     cidr_blocks = ["0.0.0.0/0"]
-    description = "Allow access out "
+    description = "Allow access from outside on 80 "
+}
+
+resource "aws_security_group_rule" "lb_incomming_tls" {
+    from_port   = 443
+    to_port     = 443
+    protocol = "tcp"
+    type= "ingress"
+    ##security_group_id = var.lb_sg_id
+    security_group_id = aws_security_group.consul_lb_sg.id
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "Allow access from outside on 443 "
 }
 
 resource "aws_instance" "consul" {
@@ -57,6 +71,7 @@ resource "aws_instance" "consul" {
   instance_type = var.instance_type
   associate_public_ip_address = false
   vpc_security_group_ids = [aws_security_group.consul.id , var.common_sg_id ,aws_security_group.consul_lb_sg.id]
+  ##vpc_security_group_ids = [aws_security_group.consul.id , var.common_sg_id ]
   iam_instance_profile   = aws_iam_instance_profile.consul-join.name
   subnet_id = element(var.subnet_ids,count.index)
   #user_data = file("${path.module}/user_data_db.sh")
@@ -66,7 +81,14 @@ resource "aws_instance" "consul" {
   }
 }
 
-
+resource "aws_route53_record" "consul_record" {
+  count = var.create_consul_servers ? 1 : 0
+  zone_id = var.r53_zone_id
+  name    = "consul"
+  type    = "CNAME"
+  ttl =  60
+  records = [aws_lb.consul_lb[0].dns_name]
+}
 
 
 

@@ -57,3 +57,14 @@ variable "jenkins_key" {
   description = "Jenkins Nodes Pem Keys"
   default = "sigal_jenkins_ec2_key"
 }
+
+
+variable "create_lb" {
+  description = "Do we Want to create LB"
+  type = bool
+  default = false
+}
+
+variable "domain_name" {
+  default = "sigalits.com"
+}

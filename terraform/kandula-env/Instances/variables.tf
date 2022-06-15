@@ -23,6 +23,9 @@ variable "create_consul_lb" {
   default = true
 }
 
+variable "create_eks" {
+  default = false
+}
 
 variable "kandula_instance_count" {
        description = "Number of instances."
@@ -142,6 +145,10 @@ variable "consul_ami_id" {
   default = "ami-0fcda042dd8ae41c7"
 }
 
+variable "create_jenkins_servers"{
+  type = bool
+  default = true
+}
 variable "jenkins_nodes_count" {
   description = "Number of Jenkins nodes"
   default = 2

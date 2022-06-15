@@ -14,7 +14,7 @@ output "public_subnets" {
   value = module.vpc.public_subnets
 }
 output "jenkins_instance_profile_name" {
-  value = aws_iam_instance_profile.jenkins.name
+  value = module.jenkins_server.jenkins_instance_profile_name
 }
 
 #output "database_subnets" {
@@ -34,11 +34,11 @@ output "main_route_table_id" {
 }
 
 output "jenkins_server_sg" {
-  value = aws_security_group.jenkins_server.id
+  value = module.jenkins_server.jenkins_server_sg
 }
 
 output "lb_jenkins_sg_id" {
-  value = aws_security_group.jenkins_lb_sg.id
+  value = module.jenkins_server.lb_jenkins_sg_id
 }
 
 output "jenkins_alb" {
@@ -52,4 +52,25 @@ output "common_sg_id" {
 
 output "eks_cluster_name" {
   value = module.vpc.eks_cluster_name
+}
+
+output "jenkins_iam_role_arn" {
+  value = module.jenkins_server.jenkins_iam_role_arn
+}
+output "kandula_tls_arn" {
+  value = module.jenkins_server.kandula_tls_arn
+}
+
+output "acm_certificate_arn" {
+  description = "ARN of the ACM Certificate"
+  value       = aws_acm_certificate.cert.arn
+}
+
+output "domain_validation_options" {
+  description = "If your domain isn't managed by Route 53, manually finish the ACM creation by creating these DNS records in your registar service"
+  value       = aws_acm_certificate.cert.domain_validation_options
+}
+
+output "domain_name" {
+  value = var.domain_name
 }

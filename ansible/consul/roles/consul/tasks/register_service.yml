@@ -15,7 +15,7 @@
     service_name: "{{ inventory_hostname }}"
     service_port: "8080" 
     interval: 10s
-    http: http://localhost:8080
+    http: http://localhost:8080/login
   notify: restart consul
   when : ( inventory_hostname  == 'jenkins-server' )
 

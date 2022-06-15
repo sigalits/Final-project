@@ -20,17 +20,42 @@ resource "aws_lb_listener" "consul-alb-listener" {
   count = var.create_consul_lb ? 1: 0
   default_action {
     target_group_arn = aws_lb_target_group.consul-target-group[0].arn
-    type = "forward"
+    type = "redirect"
+
+    redirect {
+      port        = "443"
+      protocol    = "HTTPS"
+      status_code = "HTTP_301"
+    }
   }
+  #  default_action {
+  #    target_group_arn = aws_lb_target_group.consul-target-group[0].arn
+  #    type = "forward"
+  #  }
+  ###load_balancer_arn = var.lb_arn[0]
   load_balancer_arn = aws_lb.consul_lb[0].arn
   port = 80
+  ##  port = 8500
   protocol = "HTTP"
 }
 
+resource "aws_alb_listener" "consul_https_alb" {
+  count = var.create_consul_lb ? 1: 0
+  load_balancer_arn = aws_lb.consul_lb[0].arn
+  port              = "443"
+  protocol          = "HTTPS"
+  ssl_policy        = "ELBSecurityPolicy-2016-08"
+  certificate_arn   = var.acm_certificate_arn
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.consul-target-group[0].arn
+  }
+}
 
 resource "aws_lb_target_group" "consul-target-group" {
   count = var.create_consul_lb ? 1: 0
   name = "${var.tag_name}-tg"
+  target_type = "instance"
   port = 8500
   protocol = "HTTP"
   vpc_id = var.vpc_id
@@ -40,7 +65,7 @@ resource "aws_lb_target_group" "consul-target-group" {
   }
 }
 
-# register targset to LB
+# register target to LB
 
 resource "aws_lb_target_group_attachment" "consul_target_att" {
   count = var.create_consul_lb ? var.consul_instance_count : 0

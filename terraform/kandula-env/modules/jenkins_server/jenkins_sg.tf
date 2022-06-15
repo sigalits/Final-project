@@ -1,16 +1,8 @@
-resource "aws_s3_bucket" "backup_bucket" {
-    bucket = lower(var.jenkins_bucket_name)
-    acl = var.acl_value
-  #  force_destroy = var.force_destroy
-  tags = {"Name" = var.jenkins_bucket_name}
- }
-
-
 #jenkins
 resource "aws_security_group" "jenkins_server" {
   name = "jenkins_server_sg"
   description = "Allow Jenkins inbound traffic"
-  vpc_id = module.vpc.vpc_id
+  vpc_id = var.vpc_id
 }
 
 resource "aws_security_group_rule" "jenkins_8080_access" {
@@ -44,12 +36,20 @@ resource "aws_security_group_rule" "jenkins_inside_all" {
     self              = true
 }
 
+resource "aws_security_group_rule" "jenkins_alb_https_all" {
+  type              = "ingress"
+  from_port         = 443
+  to_port           = 443
+  protocol          = "tcp"
+  cidr_blocks       = ["0.0.0.0/0"]
+  security_group_id = aws_security_group.jenkins_lb_sg.id
+}
 
 
 resource "aws_security_group" "jenkins_lb_sg" {
   name = format("%s", "${var.tag_name}_jenkins_lb_sg")
   description = "security group for load balancers of jenkins"
-  vpc_id = module.vpc.vpc_id
+  vpc_id = var.vpc_id
 }
 
 resource "aws_security_group_rule" "ui_access" {

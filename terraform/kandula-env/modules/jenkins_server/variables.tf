@@ -30,22 +30,37 @@ variable "ami_id" {
     description = "AMI for ubuntu"
     type = string
 }
-
-variable "jenkins_sg"{
-  type = string
+variable "vpc_cidr" {
 }
-
-variable "jenkins_lb_sg" {
-  type = string
-}
+#variable "jenkins_sg"{
+#  type = string
+#}
+#
+#variable "jenkins_lb_sg" {
+#  type = string
+#}
 variable "common_sg" {
   type = string
 }
-variable "iam_instance_profile" {
-  description = "jenkins instance profile "
-  type = string
-}
+
 variable "private_ip" {
   description = "permanent private ip for jenkins master"
 }
 
+variable "efs_id" {
+  description = "Jenkins efs"
+}
+variable "efs_dns" {
+  description = "Jenkins efs dns_name"
+}
+
+variable "aws_region" {}
+
+variable "create_lb" {
+  description = "Do we Want to create LB"
+  type = bool
+}
+
+variable "aws_acm_certificate_arn" {
+  default = "aws public certificate arn"
+}

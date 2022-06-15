@@ -8,6 +8,23 @@ data "aws_ami" "jenkins-ami" {
 
   filter {
     name   = "name"
-    values = ["jenkins-master*"]
+    values = ["jenkins-master*v6"]
   }
 }
+
+
+#data "aws_route53_zone" "MyZone" {
+#    name = var.domain_name
+#}
+
+data "aws_route53_zone" "selected" {
+  name         = "${var.domain_name}."
+  private_zone = false
+}
+
+data "aws_efs_file_system" "efs"{
+  tags = {
+    Name = "jenkins-master-efs"
+  }
+}
+

@@ -21,3 +21,6 @@ variable "pem_key_file_name" {
   description = "Pem key file name"
   default = "kandula.pem"
 }
+variable "domain_name" {
+  description = "existing domain name to be registered as R53 hosted zone"
+}

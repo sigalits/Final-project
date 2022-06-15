@@ -86,3 +86,5 @@ variable "lb_sg_id" {
   description = "Load blance Security group"
 }
 
+variable "acm_certificate_arn" {}
+variable "r53_zone_id" {}
