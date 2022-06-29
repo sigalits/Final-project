@@ -60,3 +60,10 @@ resource "aws_instance" "bastion" {
 
 }
 
+resource "aws_route53_record" "bastion_record" {
+  zone_id = var.r53_zone_id
+  name    = "bastion"
+  type    = "A"
+  ttl =  60
+  records = [aws_instance.bastion.public_ip]
+}

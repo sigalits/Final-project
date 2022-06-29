@@ -11,6 +11,20 @@ resource "aws_security_group" "all_worker_mgmt" {
   }
 }
 
+locals {
+  desired_size   = var.create_eks ? var.eks_instance_count: 0
+}
+output "eks_create_eks_from_eks" {
+  value = var.create_eks
+}
+
+output "eks_instance_count_from_eks" {
+  value = var.eks_instance_count
+}
+
+output "eks_instance_desired_size_eks" {
+  value = local.desired_size
+}
 module "eks" {
   source          = "terraform-aws-modules/eks/aws"
   #version         = "18.6.1"
@@ -28,6 +42,16 @@ module "eks" {
       groups   = ["system:masters"]
     }
   ]
+  node_security_group_additional_rules = {
+       rds_port = {
+          type                     = "egress"
+          from_port                = var.db_port
+          to_port                  = var.db_port
+          protocol                 = "tcp"
+          source_security_group_id = var.rds_sg_id
+          description              = "Allow psql port tcp"
+        }
+        }
   tags = {
     Environment = "Kandula"
     GithubRepo  = "terraform-aws-eks"
@@ -39,27 +63,26 @@ module "eks" {
   eks_managed_node_group_defaults = {
     ami_type               = "AL2_x86_64"
     #instance_types         = ["t3.medium"]
-    instance_types         = ["t3.micro"]
+    instance_types         = var.eks_instance_types_1
     vpc_security_group_ids = [aws_security_group.all_worker_mgmt.id]
   }
 
   eks_managed_node_groups = {
 
     group_1 = {
-      min_size       = 2
+      min_size       = 0 #var.create_eks ? 2: 0
       max_size       = 6
-      desired_size   = 2
+      desired_size   = var.create_eks ? var.eks_instance_count: 0
       #instance_types = ["t3.medium"]
-      instance_types = ["t3.micro"]
+      instance_types = var.eks_instance_types_1
     }
 
     group_2 = {
-      min_size       = 2
+      min_size       = 0 #var.create_eks ? 2: 0
       max_size       = 6
-      desired_size   = 2
-      instance_types = ["t3.medium"]
+      desired_size   = var.create_eks ? var.eks_instance_count: 0
+      instance_types = var.eks_instance_types_2
       #instance_types = ["t3.large"]
-
     }
   }
 

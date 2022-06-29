@@ -84,7 +84,7 @@ resource "aws_instance" "consul" {
 resource "aws_route53_record" "consul_record" {
   count = var.create_consul_servers ? 1 : 0
   zone_id = var.r53_zone_id
-  name    = "consul"
+  name    = "consul.kandula"
   type    = "CNAME"
   ttl =  60
   records = [aws_lb.consul_lb[0].dns_name]

@@ -58,5 +58,6 @@ variable "attach_instance_profile" {
   type = string
 }
 
+variable "r53_zone_id" {}
 
 

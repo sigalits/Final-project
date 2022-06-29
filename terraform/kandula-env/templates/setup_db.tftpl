@@ -1,0 +1,17 @@
+CREATE  SCHEMA IF NOT EXISTS cheduler;
+
+CREATE TABLE IF NOT EXISTS scheduler.instance_shutdown (
+	schedule_id SERIAL NOT NULL PRIMARY key,
+	instance_id VARCHAR(32) NOT NULL,
+	shutdown_hour NUMERIC NOT NULL CHECK(shutdown_hour >= 0 AND shutdown_hour < 24),
+	unique (instance_id, shutdown_hour)
+);
+
+CREATE ROLE ${app_user}
+LOGIN
+PASSWORD '${app_user_password}';
+
+GRANT USAGE ON SCHEMA scheduler TO ${app_user};
+GRANT USAGE, SELECT ON SEQUENCE scheduler.instance_shutdown_schedule_id_seq TO ${app_user};
+GRANT  INSERT, SELECT, UPDATE, DELETE ON scheduler.instance_shutdown TO ${app_user};
+alter role kandula in database kanduladb set search_path='scheduler';

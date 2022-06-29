@@ -17,16 +17,26 @@ variable "create_lb" {
   type = bool
   default = true
 }
-variable "create_consul_lb" {
-  description = "Do we Want to create LB"
-  type = bool
-  default = true
-}
 
+####eks
 variable "create_eks" {
   default = false
 }
 
+variable "eks_instance_types_1"{
+  description = "node group1 instance types"
+  default = ["t3.medium"]
+}
+
+variable "eks_instance_types_2"{
+  description = "node group2 instance types"
+  default = ["t3.large"]
+}
+
+variable "eks_instance_count" {
+  description = "instances count per group"
+  default = 2
+}
 variable "kandula_instance_count" {
        description = "Number of instances."
        default     = 1
@@ -37,19 +47,10 @@ variable "db_instance_count" {
        default     = 1
 }
 
-variable "consul_instance_count" {
-       description = "Number of instances."
-       default     = 3
-}
 
 variable "key_name" {
     description = " SSH keys to connect to ec2 instance"
     default     = "kandula_key"
-}
-
-variable "jenkins_key_name" {
-    description = "SSH keys to connect to ec2 instance"
-    default     = "sigal_jenkins_ec2_key"
 }
 
 
@@ -59,11 +60,7 @@ variable "force_destroy" {
   default = false
 }
 
-variable "create_consul_servers" {
-  description = "do we want to create db servers now?"
-  type = bool
-  default = true
-}
+
 variable "instance_type" {
     description = "instance type for ec2"
     default     =  "t2.micro"
@@ -81,21 +78,6 @@ variable "security_group_alb" {
 variable "security_group_database" {
     description = "Name of security group"
     default     = "kandula-database-sg"
-}
-
-variable "security_group_consul_lb"{
-     description = "Name of security group"
-     default = "kandula-consul_lb-sg"
-}
-
-variable "security_group_consul" {
-    description = "Name of security group"
-    default     = "kandula-consul-sg"
-}
-
-variable "security_group_jenkins_lb" {
-    description = "Name of security group"
-    default     = "kandula-jenkins-lb-sg"
 }
 
 
@@ -130,19 +112,54 @@ variable "acl_value" {
     default = "private"
 }
 
-variable "jenkins_bucket_name" {
-  description = "S3 bucket name for kandula log"
-  default = "kandul-jenkins-backup"
-}
 
 variable "bucket_name" {
   description = "S3 bucket name for kandula log"
   default = "kandula-log"
 }
+####consul
+variable "consul_instance_count" {
+       description = "Number of instances."
+       default     = 3
+}
+
+variable "security_group_consul_lb"{
+     description = "Name of security group"
+     default = "kandula-consul_lb-sg"
+}
+
+variable "security_group_consul" {
+    description = "Name of security group"
+    default     = "kandula-consul-sg"
+}
 
 variable "consul_ami_id" {
   description = "Ubuntu 21.10 ami"
   default = "ami-0fcda042dd8ae41c7"
+}
+
+variable "create_consul_servers" {
+  description = "do we want to create db servers now?"
+  type = bool
+  default = true
+}
+
+variable "create_consul_lb" {
+  description = "Do we Want to create LB"
+  type = bool
+  default = true
+}
+
+####jenkins#####
+
+#variable "jenkins_bucket_name" {
+#  description = "S3 bucket name for kandula log"
+#  default = "kandul-jenkins-backup"
+#}
+
+variable "security_group_jenkins_lb" {
+    description = "Name of security group"
+    default     = "kandula-jenkins-lb-sg"
 }
 
 variable "create_jenkins_servers"{
@@ -164,4 +181,74 @@ variable "jenkins_server_private_ip"{
   default = "10.0.21.21"
 }
 
+variable "jenkins_key_name" {
+    description = "SSH keys to connect to ec2 instance"
+    default     = "sigal_jenkins_ec2_key"
+}
 
+variable "jenkins_nodes_ami" {
+  description = "Ubuntu 20.4"
+  default = "ami-04505e74c0741db8d"
+}
+######RDS######
+
+variable "instance_name" {
+  description = "name for RDS postgres sql db"
+  type        = string
+  default     = "kanduladb"
+}
+
+variable "db_secret_name" {
+  description = "identifying name for db secrets in secretsmanager"
+  type        = string
+  default     = "aws_keys_kandula"
+}
+
+variable "db_storage" {
+  description = "size of db in gb"
+  type        = number
+  default     = 10
+}
+
+variable "db_engine" {
+  description = "engine and version for rds db"
+  type        = map(string)
+  default = {
+    engine  = "postgres"
+    version = "12.9"
+  }
+}
+
+variable "db_instance_class" {
+  description = "instance type to be used for db instances"
+  type        = string
+  default     = "db.t2.micro"
+}
+
+variable "db_port" {
+  description = "port for db connections"
+  type        = number
+  default     = 5431
+}
+
+variable "ansible_psql_role_vars_filepath" {
+  description = "file path for vars file used in ansible psql role"
+  type        = string
+  default     = "../../../ansible/roles/psql/vars/main.yml"
+}
+
+variable "db_setup_script_filepath" {
+  description = "file path for sql file used for initial db setup"
+  type        = string
+  default     = "setup_db.sql"
+}
+
+variable "db_pgpass_file_setup" {
+  description = "file path for .pgpass"
+  type        = string
+  default     = ".pgpass"
+}
+
+variable "create_rds" {
+  default = false
+}
