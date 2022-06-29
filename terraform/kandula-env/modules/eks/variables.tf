@@ -22,4 +22,9 @@ variable "vpc_cidr" {}
 variable "jenkins_role_arn" {}
 variable "access_key" {}
 variable "secret_key" {}
-#variable "create_eks" {}
+variable "create_eks" {}
+variable "eks_instance_count" {}
+variable "eks_instance_types_1" {}
+variable "eks_instance_types_2" {}
+variable "db_port" {}
+variable "rds_sg_id" {}

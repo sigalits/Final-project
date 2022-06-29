@@ -8,14 +8,14 @@ locals {
 resource "aws_instance" "jenkins-node" {
   count = var.create_jenkins_servers ? var.jenkins_nodes_count: 0
   private_ip = element(var.jenkins_node_private_ip,count.index)
-  ami = var.consul_ami_id
+  ami = var.jenkins_nodes_ami
   instance_type               = var.instance_type
   key_name                    = var.jenkins_key_name
   subnet_id                   = data.terraform_remote_state.vpc.outputs.private_subnets[count.index].id
   iam_instance_profile        = data.terraform_remote_state.vpc.outputs.jenkins_instance_profile_name
   associate_public_ip_address = false
   vpc_security_group_ids      = [data.terraform_remote_state.vpc.outputs.common_sg_id, data.terraform_remote_state.vpc.outputs.jenkins_server_sg]
-  depends_on                  = [module.bastion, module.eks]
+  depends_on                  = [module.bastion,module.eks]
   user_data = templatefile("${path.module}/../templates/user_data_jenkins_slave.sh" , {
               eks_cluster = data.terraform_remote_state.vpc.outputs.eks_cluster_name,
               region = var.aws_region})
@@ -64,10 +64,15 @@ module "bastion" {
   security_group_bastion = var.security_group_bastion
   common_security_group_id = data.terraform_remote_state.vpc.outputs.common_sg_id
   tag_name = format("%s", "${var.tag_name}_bastion")
+  r53_zone_id = data.aws_route53_zone.selected.zone_id
 }
 
+output "eks_instance_count_from_main" {
+  value = var.eks_instance_count
+}
 module "eks" {
   source = "../modules/eks"
+  create_eks = var.create_eks
   private_subnet_ids = data.terraform_remote_state.vpc.outputs.private_subnets[*].id
   vpc_id = data.aws_vpc.vpc.id
   jenkins_role_arn=data.terraform_remote_state.vpc.outputs.jenkins_iam_role_arn
@@ -75,10 +80,14 @@ module "eks" {
   common_security_group_id=data.terraform_remote_state.vpc.outputs.common_sg_id
   cluster_name = data.terraform_remote_state.vpc.outputs.eks_cluster_name
   aws_region = var.aws_region
+  db_port = aws_db_instance.kandula-db.port
+  rds_sg_id = aws_security_group.rds_sg.id
   vpc_cidr = var.vpc_cidr
   access_key = local.access_key
   secret_key = local.secret_key
-  #create_eks = var.create_eks
+  eks_instance_count = var.eks_instance_count
+  eks_instance_types_1 = var.eks_instance_types_1
+  eks_instance_types_2 = var.eks_instance_types_2
 }
 
 resource "time_sleep" "wait_90_seconds" {

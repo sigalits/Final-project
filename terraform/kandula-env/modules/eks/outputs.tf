@@ -31,3 +31,7 @@ output "cluster_name" {
 output "oidc_provider_arn" {
   value = module.eks[*].oidc_provider_arn
 }
+
+output "all_worker_mgmt_sg_id" {
+  value = aws_security_group.all_worker_mgmt.id
+}

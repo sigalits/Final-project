@@ -66,3 +66,19 @@ output "Jenkins_alb" {
 output "consul_alb" {
   value = module.consul.lb_consul_dns
 }
+
+#output "eks_instance_desired_size_eks" {
+#  value = module.eks.eks_instance_desired_size_eks
+#}
+
+output "db_setup_script" {
+  value = var.db_setup_script_filepath
+}
+
+output "rds_endpoint" {
+  value = aws_db_instance.kandula-db.address
+}
+
+output "rds_port" {
+  value = aws_db_instance.kandula-db.port
+}
