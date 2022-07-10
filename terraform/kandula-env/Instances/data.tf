@@ -52,6 +52,15 @@ data "aws_route53_zone" "selected" {
   name         = "${data.terraform_remote_state.vpc.outputs.domain_name}."
   private_zone = false
 }
+
+
+data "aws_efs_file_system" "efs"{
+  tags = {
+    Name = "jenkins-master-efs"
+  }
+}
+
+
 #data "terraform_remote_state" "vpc" {
 #  backend = "remote"
 #  config = {

@@ -36,9 +36,9 @@ variable "vpc_cidr" {
 #  type = string
 #}
 #
-#variable "jenkins_lb_sg" {
-#  type = string
-#}
+variable "lb_sg_id" {
+  type = string
+}
 variable "common_sg" {
   type = string
 }

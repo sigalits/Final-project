@@ -60,7 +60,7 @@ output "bastion_ip" {
 }
 
 output "Jenkins_alb" {
-  value = data.terraform_remote_state.vpc.outputs.jenkins_alb
+  value = aws_lb.jenkins_lb[*].dns_name
 }
 
 output "consul_alb" {
@@ -81,4 +81,21 @@ output "rds_endpoint" {
 
 output "rds_port" {
   value = aws_db_instance.kandula-db.port
+}
+
+output "elk_server_public_ip" {
+  value = module.ec2-instance.public_ip[*]
+}
+#output "kibana_url" {
+#  value= "https://${aws_route53_record.jenkins_record[0].name}.${data.terraform_remote_state.vpc.outputs.domain_name}:5601"
+# # value = "http://${module.ec2-instance.public_ip[0]}:5601"
+#}
+
+output "Jenkins_master_ip" {
+  value = module.jenkins_server.jenkins_server_ip
+}
+
+output "acm_certificate_arn" {
+  description = "ARN of the ACM Certificate"
+  value       = aws_acm_certificate.cert.arn
 }

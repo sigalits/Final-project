@@ -3,7 +3,7 @@ regions:
   - us-east-1
 filters:
   tag:project:
-    - Mid-Term
+    - Final
 
 groups:
   consul_server: "'true' in tags.consul_server"

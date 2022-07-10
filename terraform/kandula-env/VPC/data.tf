@@ -22,9 +22,5 @@ data "aws_route53_zone" "selected" {
   private_zone = false
 }
 
-data "aws_efs_file_system" "efs"{
-  tags = {
-    Name = "jenkins-master-efs"
-  }
-}
+
 

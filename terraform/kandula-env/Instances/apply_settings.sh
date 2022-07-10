@@ -74,26 +74,75 @@ Host 10.0.*.*
     FingerprintHash=sha256
 EOT
 
-mv .pgpass ~/
-rm .pgpass
-echo "Running kanduladb setup script"
-timeout 300 ssh bastion -L ${rds_port}:${rds}:${rds_port} -T -N  &
-sleep 5
-echo "Tunnel connection Connected"
-echo "Connecting to db"
-psql -h localhost -p ${rds_port} -U master -d kanduladb -a -f ${db_setup_script}
-kubectl apply -f '/Users/user/PycharmProjects/Mid-project/kandula_nlb_service_ok.yaml'
-kubectl get svc
-echo "Use \" kubectl get svc \" to find kandula-app dns address"
-echo ""
+if [ -Z $rds ];
+ then
+  mv .pgpass ~/
+  rm .pgpass
+  echo "Running kanduladb setup script"
+  timeout 300 ssh bastion -L ${rds_port}:${rds}:${rds_port} -T -N  &
+  sleep 5
+  echo "Tunnel connection Connected"
+  echo "Connecting to db"
+  psql -h localhost -p ${rds_port} -U master -d kanduladb -a -f ${db_setup_script}
+  kubectl apply -f '/Users/user/PycharmProjects/Mid-project/kandula_nlb_service_ok.yaml'
+  kubectl get svc
+  echo "Use \" kubectl get svc \" to find kandula-app dns address"
+  echo ""
+fi
 #echo "Consul Dns is : ${consul_alb}"
 #echo ""
 echo "For proceeding with Ansible deployment "
 echo "cd to ${current_dir}/../../../ansible/consul"
+cd  ${current_dir}/../../../ansible/consul
 echo "and run ansible-playbook consul_setup.yml"
+ansible-playbook consul_setup.yml
 echo ""
 echo ""
 echo "Please run Jenkins job "
 echo "            jenkins.sigalits.com:8080/job/kandula-build-pipeline/job/mid-project/ "
 echo ""
 echo ""
+
+cd ${HOME}/PycharmProjects/Mid-project/helm
+
+kubectl create ns monitoring
+kubectl create ns grafana
+kubectl create ns consul
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts -n monitoring
+helm repo add grafana https://grafana.github.io/helm-charts -n grafana
+helm repo add hashicorp https://helm.releases.hashicorp.com -n consul
+helm repo update
+echo "helm install prometheus"
+helm show values prometheus-community/prometheus > prom_values.yaml
+helm install prometheus prometheus-community/prometheus --namespace monitoring -f prom_values.yaml
+
+export POD_PROM=$(kubectl get pods --namespace monitoring -l "app=prometheus,component=server" -o jsonpath="{.items[0].metadata.name}")
+echo "To expose prometheus  use : kubectl --namespace monitoring port-forward $POD_PROM 9090 & "
+alias ExposeProm=' kubectl --namespace monitoring port-forward $POD_PROM 9090'
+
+echo "helm install Grafana"
+helm install grafana grafana/grafana -n grafana -f grafana_values.yaml
+##echo " Grafana admin Password is $(kubectl get secret --namespace grafana grafana -o jsonpath="{.data.admin-password}" | base64 --decode ) "
+#kubectl get secret --namespace grafana grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
+export POD_GRAF=$(kubectl get pods --namespace grafana -l "app.kubernetes.io/name=grafana,app.kubernetes.io/instance=grafana" -o jsonpath="{.items[0].metadata.name}")
+echo "Modfing Grafan password"
+kubectl exec -i -t -n ${POD_GRAF} -it -- sh -c "grafana-cli admin reset-admin-password admin"
+
+echo "To expose Grafana use : kubectl --namespace grafana port-forward $POD_GRAF 3000 &"
+alias ExposeGraf='kubectl --namespace grafana port-forward ${POD_GRAF} 3000'
+
+#alias Cleanup_kube= 'kubectl delete daemonsets,replicasets,services,deployments,pods,rc,ingress --all --all-namespaces'
+alias Destroy='terraform destroy '
+alias Pods='kubectl get pods --all-namespaces '
+alias Svc='kubectl get svc --all-namespaces '
+echo "create secret for gossip"
+kubectl create secret generic consul-gossip-encryption-key --from-literal=key="uDBV4e+LbFW3019YKPxIrg==" -n consul
+echo "Configure CoreDns resolve configmap"
+export CONSUL_DNS_IP=`kubectl get svc consul-consul-dns -n consul --output jsonpath='{.spec.clusterIP}'`
+echo Consul service appears at address = $CONSUL_DNS_IP
+envsubst < $MONITORING_CTL_PATH/core_dns_config_map.tmpl > $MONITORING_CTL_PATH/core_dns_config_map.yaml
+kubectl apply -f $MONITORING_CTL_PATH/core_dns_config_map.yaml
+
+echo "helm install Consul"
+helm install consul hashicorp/consul -n consul -f consul_values.yaml
+
