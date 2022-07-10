@@ -12,11 +12,6 @@ variable "aws_region" {
        default     = "us-east-1"
 }
 
-variable "create_lb" {
-  description = "Do we Want to create LB"
-  type = bool
-  default = true
-}
 
 ####eks
 variable "create_eks" {
@@ -157,6 +152,11 @@ variable "create_consul_lb" {
 #  default = "kandul-jenkins-backup"
 #}
 
+variable "jenkins_key" {
+  description = "Jenkins Nodes Pem Keys"
+  default = "sigal_jenkins_ec2_key"
+}
+
 variable "security_group_jenkins_lb" {
     description = "Name of security group"
     default     = "kandula-jenkins-lb-sg"
@@ -190,6 +190,15 @@ variable "jenkins_nodes_ami" {
   description = "Ubuntu 20.4"
   default = "ami-04505e74c0741db8d"
 }
+
+
+variable "create_lb" {
+  description = "Do we Want to create LB"
+  type = bool
+  default = false
+}
+
+
 ######RDS######
 
 variable "instance_name" {
@@ -251,4 +260,11 @@ variable "db_pgpass_file_setup" {
 
 variable "create_rds" {
   default = false
+}
+
+
+####### ELK
+variable "elk_instance_count" {
+  type    = number
+  default = 1
 }

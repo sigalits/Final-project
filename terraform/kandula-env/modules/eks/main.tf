@@ -9,7 +9,64 @@ resource "aws_security_group" "all_worker_mgmt" {
 
     cidr_blocks = [ var.vpc_cidr ]
   }
-}
+  egress {
+    from_port        = 0
+    to_port          = 0
+    protocol         = "-1"
+    cidr_blocks      = ["0.0.0.0/0"]
+   }
+
+  ingress {
+    from_port = 8080
+    to_port   = 8080
+    protocol  = "tcp"
+    cidr_blocks = [var.vpc_cidr]
+  }
+
+  ingress {
+    description = "Consul"
+    from_port = 8300
+    protocol  = "tcp"
+    to_port   = 8303
+    cidr_blocks = [var.vpc_cidr]
+  }
+
+    ingress {
+    description = "Consul"
+    from_port = 9153
+    to_port   = 9153
+    protocol  = "tcp"
+    cidr_blocks = [var.vpc_cidr]
+  }
+  ingress {
+    description = "Consul"
+    from_port   = 8600
+    to_port     = 8600
+    protocol    = "tcp"
+    cidr_blocks = [var.vpc_cidr]
+  }
+  ingress {
+    description = "Consul"
+    from_port   = 8500
+    to_port     = 8505
+    protocol    = "tcp"
+    cidr_blocks = [var.vpc_cidr]
+  }
+  ingress {
+    description = "Consul"
+    from_port   = 3000
+    to_port     = 3000
+    protocol    = "tcp"
+    cidr_blocks = [var.vpc_cidr]
+  }
+  ingress {
+    description = "Consul"
+    from_port   = 9000
+    to_port     = 9100
+    protocol    = "tcp"
+    cidr_blocks = [var.vpc_cidr]
+  }
+ }
 
 locals {
   desired_size   = var.create_eks ? var.eks_instance_count: 0
@@ -35,6 +92,8 @@ module "eks" {
 
   enable_irsa = true
   manage_aws_auth_configmap = true
+  create_cloudwatch_log_group            =  false
+  cloudwatch_log_group_retention_in_days =  1
   aws_auth_roles = [
     {
       rolearn  = var.jenkins_role_arn
@@ -42,8 +101,43 @@ module "eks" {
       groups   = ["system:masters"]
     }
   ]
+  cluster_security_group_additional_rules = {
+    egress_nodes_ephemeral_ports_tcp = {
+      description                = "To node 1025-65535"
+      protocol                   = "tcp"
+      from_port                  = 0
+      to_port                    = 65535
+      type                       = "egress"
+      source_node_security_group = true
+    }
+    ingress_nodes_ephemeral_ports_tcp = {
+      description                = "To node 1025-65535"
+      protocol                   = "tcp"
+      from_port                  = 0
+      to_port                    = 65535
+      type                       = "ingress"
+      source_node_security_group = true
+    }
+  }
   node_security_group_additional_rules = {
-       rds_port = {
+    ingress_self_all = {
+      description = "Node to node all ports/protocols"
+      protocol    = "-1"
+      from_port   = 0
+      to_port     = 0
+      type        = "ingress"
+      self        = true
+    }
+    egress_all = {
+      description      = "Node all egress"
+      protocol         = "-1"
+      from_port        = 0
+      to_port          = 0
+      type             = "egress"
+      cidr_blocks      = ["0.0.0.0/0"]
+      ipv6_cidr_blocks = ["::/0"]
+    }
+    rds_port = {
           type                     = "egress"
           from_port                = var.db_port
           to_port                  = var.db_port
@@ -51,7 +145,41 @@ module "eks" {
           source_security_group_id = var.rds_sg_id
           description              = "Allow psql port tcp"
         }
+     consul_port_8080 = {
+          type                     = "ingress"
+          from_port                = 8080
+          to_port                  = 8080
+          protocol                 = "tcp"
+          source_security_group_id = var.common_security_group_id
+          description              = "Allow consul port 8080"
         }
+
+#    consul_port_9091 = {
+#          type                     = "ingress"
+#          from_port                = 9091
+#          to_port                  = 9091
+#          protocol                 = "tcp"
+#          source_security_group_id = var.common_security_group_id
+#          description              = "Allow consul port 9090"
+#        }
+#    consul_port_9153 = {
+#          type                     = "ingress"
+#          from_port                = 9153
+#          to_port                  = 9153
+#          protocol                 = "tcp"
+#          source_security_group_id = var.common_security_group_id
+#          description              = "Allow consul port 9153"
+#        }
+#    consul_port_8600 = {
+#          type                     = "ingress"
+#          from_port                = 8600
+#          to_port                  = 8600
+#          protocol                 = "tcp"
+#          source_security_group_id = var.common_security_group_id
+#          description              = "Allow consul port 600"
+#        }
+    }
+
   tags = {
     Environment = "Kandula"
     GithubRepo  = "terraform-aws-eks"
@@ -64,7 +192,7 @@ module "eks" {
     ami_type               = "AL2_x86_64"
     #instance_types         = ["t3.medium"]
     instance_types         = var.eks_instance_types_1
-    vpc_security_group_ids = [aws_security_group.all_worker_mgmt.id]
+    vpc_security_group_ids = [aws_security_group.all_worker_mgmt.id , var.common_security_group_id]
   }
 
   eks_managed_node_groups = {
@@ -75,6 +203,10 @@ module "eks" {
       desired_size   = var.create_eks ? var.eks_instance_count: 0
       #instance_types = ["t3.medium"]
       instance_types = var.eks_instance_types_1
+      tags = {
+        purpose = "eks" ,
+        consul_agent = "true"
+      }
     }
 
     group_2 = {
@@ -83,9 +215,12 @@ module "eks" {
       desired_size   = var.create_eks ? var.eks_instance_count: 0
       instance_types = var.eks_instance_types_2
       #instance_types = ["t3.large"]
+       tags = {
+        purpose = "eks" ,
+        consul_agent = "true"
+      }
     }
   }
-
 }
 
 #resource "null_resource" "module_guardian" {
@@ -114,3 +249,4 @@ module "iam_assumable_role_admin" {
   role_policy_arns              = ["arn:aws:iam::aws:policy/AmazonEC2FullAccess"]
   oidc_fully_qualified_subjects = ["system:serviceaccount:${local.k8s_service_account_namespace}:${local.k8s_service_account_name}"]
 }
+

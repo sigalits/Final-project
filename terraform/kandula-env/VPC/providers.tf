@@ -26,7 +26,7 @@ provider "aws" {
       env = "ops-school"
       owner-email = "sigalit.hillel@gmail.com"
       application = "Kandula"
-      project = "Mid-Term"
+      project = "Final"
     }
   }
 }

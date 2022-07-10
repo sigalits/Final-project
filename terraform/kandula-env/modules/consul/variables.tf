@@ -78,13 +78,13 @@ variable "iam_instance_profile_name" {
   type = string
 }
 
-variable "lb_arn" {
-  description = "Lb arn from vpn/module"
-}
-
-variable "lb_sg_id" {
-  description = "Load blance Security group"
-}
+#variable "lb_arn" {
+#  description = "Lb arn from vpn/module"
+#}
+#
+#variable "lb_sg_id" {
+#  description = "Load blance Security group"
+#}
 
 variable "acm_certificate_arn" {}
 variable "r53_zone_id" {}
