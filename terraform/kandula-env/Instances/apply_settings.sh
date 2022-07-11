@@ -84,7 +84,7 @@ if [ -Z $rds ];
   echo "Tunnel connection Connected"
   echo "Connecting to db"
   psql -h localhost -p ${rds_port} -U master -d kanduladb -a -f ${db_setup_script}
-  kubectl apply -f '/Users/user/PycharmProjects/Mid-project/kandula_nlb_service_ok.yaml'
+  kubectl apply -f '/Users/user/PycharmProjects/Final-project/kandula_nlb_service_ok.yaml'
   kubectl get svc
   echo "Use \" kubectl get svc \" to find kandula-app dns address"
   echo ""
@@ -103,7 +103,7 @@ echo "            jenkins.sigalits.com:8080/job/kandula-build-pipeline/job/mid-p
 echo ""
 echo ""
 
-cd ${HOME}/PycharmProjects/Mid-project/helm
+cd ${HOME}/PycharmProjects/Final-project/helm
 
 kubectl create ns monitoring
 kubectl create ns grafana
