@@ -18,3 +18,4 @@
     service:
       name: consul.service
       state: restarted
+

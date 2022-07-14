@@ -1,4 +1,9 @@
 #! /bin/bash
+#echo "The script you are running has basename $( basename -- "$0"; ), $( dirname -- "$( readlink -f -- "$0"; )"; )"
+scriptdir="$(dirname "$(realpath "$0")")"
+TOP_DIR=`echo ${scriptdir} | awk -F "terraform" '{print $1}'`
+export HELM_DIR=${TOP_DIR}/helm
+
 BASTION_IP=$(terraform output bastion_ip)
 bastion=$(echo ${BASTION_IP} | sed 's/"//g')
 echo "BASTION address is " ${bastion}
@@ -28,7 +33,7 @@ Host bastion
     HostName ${bastion}
     User ubuntu
     UserKnownHostsFile /dev/null
-    IdentityFile ${current_dir}/../../initial_config/kandula.pem
+    IdentityFile ${TOP_DIR}/terraform/initial_config/kandula.pem
     HostKeyAlgorithms=ecdsa-sha2-nistp256
     FingerprintHash=sha256
     StrictHostKeyChecking accept-new
@@ -65,7 +70,7 @@ Host jenkins_agent2
 
 Host 10.0.*.*
     User ubuntu
-    IdentityFile ${current_dir}/../../initial_config/kandula.pem
+    IdentityFile ${TOP_DIR}/terraform/initial_config/kandula.pem
     ProxyJump bastion
     StrictHostKeyChecking accept-new
     ForwardAgent yes
@@ -74,7 +79,7 @@ Host 10.0.*.*
     FingerprintHash=sha256
 EOT
 
-if [ -Z $rds ];
+if [ "${rds}X" != "X" ];
  then
   mv .pgpass ~/
   rm .pgpass
@@ -92,18 +97,17 @@ fi
 #echo "Consul Dns is : ${consul_alb}"
 #echo ""
 echo "For proceeding with Ansible deployment "
-echo "cd to ${current_dir}/../../../ansible/consul"
-cd  ${current_dir}/../../../ansible/consul
+echo "cd to ${TOP_DIR}/ansible"
+cd  ${TOP_DIR}/ansible/
 echo "and run ansible-playbook consul_setup.yml"
-ansible-playbook consul_setup.yml
+ansible-playbook final_project.yaml
 echo ""
 echo ""
 echo "Please run Jenkins job "
 echo "            jenkins.sigalits.com:8080/job/kandula-build-pipeline/job/mid-project/ "
 echo ""
 echo ""
-
-cd ${HOME}/PycharmProjects/Final-project/helm
+cd ${HELM_DIR}
 
 kubectl create ns monitoring
 kubectl create ns grafana
@@ -113,19 +117,19 @@ helm repo add grafana https://grafana.github.io/helm-charts -n grafana
 helm repo add hashicorp https://helm.releases.hashicorp.com -n consul
 helm repo update
 echo "helm install prometheus"
-helm show values prometheus-community/prometheus > prom_values.yaml
-helm install prometheus prometheus-community/prometheus --namespace monitoring -f prom_values.yaml
+helm show values prometheus-community/prometheus > ${HELM_DIR}/prom_values.yaml
+helm install prometheus prometheus-community/prometheus --namespace monitoring -f ${HELM_DIR}/prom_values.yaml
 
 export POD_PROM=$(kubectl get pods --namespace monitoring -l "app=prometheus,component=server" -o jsonpath="{.items[0].metadata.name}")
 echo "To expose prometheus  use : kubectl --namespace monitoring port-forward $POD_PROM 9090 & "
 alias ExposeProm=' kubectl --namespace monitoring port-forward $POD_PROM 9090'
 
 echo "helm install Grafana"
-helm install grafana grafana/grafana -n grafana -f grafana_values.yaml
+helm install grafana grafana/grafana -n grafana -f ${HELM_DIR}/grafana_values.yaml
 ##echo " Grafana admin Password is $(kubectl get secret --namespace grafana grafana -o jsonpath="{.data.admin-password}" | base64 --decode ) "
 #kubectl get secret --namespace grafana grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
 export POD_GRAF=$(kubectl get pods --namespace grafana -l "app.kubernetes.io/name=grafana,app.kubernetes.io/instance=grafana" -o jsonpath="{.items[0].metadata.name}")
-echo "Modfing Grafan password"
+echo "Modifing Grafana password"
 kubectl exec -i -t -n ${POD_GRAF} -it -- sh -c "grafana-cli admin reset-admin-password admin"
 
 echo "To expose Grafana use : kubectl --namespace grafana port-forward $POD_GRAF 3000 &"
@@ -137,12 +141,15 @@ alias Pods='kubectl get pods --all-namespaces '
 alias Svc='kubectl get svc --all-namespaces '
 echo "create secret for gossip"
 kubectl create secret generic consul-gossip-encryption-key --from-literal=key="uDBV4e+LbFW3019YKPxIrg==" -n consul
+
+echo "helm install Consul"
+helm install consul hashicorp/consul -n consul -f ${HELM_DIR}/consul_values.yaml
+
 echo "Configure CoreDns resolve configmap"
 export CONSUL_DNS_IP=`kubectl get svc consul-consul-dns -n consul --output jsonpath='{.spec.clusterIP}'`
 echo Consul service appears at address = $CONSUL_DNS_IP
-envsubst < $MONITORING_CTL_PATH/core_dns_config_map.tmpl > $MONITORING_CTL_PATH/core_dns_config_map.yaml
-kubectl apply -f $MONITORING_CTL_PATH/core_dns_config_map.yaml
+envsubst < ${HELM_DIR}/coredns_configmap.tmpl > ${HELM_DIR}/coredns_configmap.yaml
+kubectl apply -f ${HELM_DIR}/core_dns_config_map.yaml
 
-echo "helm install Consul"
-helm install consul hashicorp/consul -n consul -f consul_values.yaml
+
 

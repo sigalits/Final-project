@@ -21,8 +21,9 @@ resource "aws_instance" "jenkins-node" {
               region = var.aws_region})
   tags = {
     Name = "jenkins-node-${count.index}"
-    consul_agent: "true"
-    purpose: "jenkins"
+    consul_agent = "true"
+    purpose = "jenkins"
+    node_exporter = "true"
   }
 }
 
@@ -65,6 +66,7 @@ module "bastion" {
   common_security_group_id = data.terraform_remote_state.vpc.outputs.common_sg_id
   tag_name = format("%s", "${var.tag_name}_bastion")
   r53_zone_id = data.aws_route53_zone.selected.zone_id
+  create_rds = var.create_rds
 }
 
 output "eks_instance_count_from_main" {
@@ -80,7 +82,7 @@ module "eks" {
   common_security_group_id=data.terraform_remote_state.vpc.outputs.common_sg_id
   cluster_name = data.terraform_remote_state.vpc.outputs.eks_cluster_name
   aws_region = var.aws_region
-  db_port = aws_db_instance.kandula-db.port
+  db_port = var.db_port
   rds_sg_id = aws_security_group.rds_sg.id
   vpc_cidr = var.vpc_cidr
   access_key = local.access_key
@@ -135,26 +137,24 @@ resource "aws_route53_record" "jenkins_record" {
 }
 
 
-#module "web-server" {
-#  source = "../modules/web-server"
-#  kandula_instance_count = var.kandula_instance_count
-#  ami_id = data.aws_ami.ubuntu-18.id
-#  key_name = var.key_name
-#  instance_type = var.instance_type
-#  subnet_ids = data.terraform_remote_state.vpc.outputs.public_subnets[*].id
-#  allow_cidr_blocks = concat([var.vpc_cidr],["${data.http.myip.body}/32"])
-#  security_group_kandula = data.terraform_remote_state.vpc.outputs.kandula_sg
-#  common_security_group_id=data.terraform_remote_state.vpc.outputs.common_sg_id
-#  vpc_id = data.aws_vpc.vpc.id
-#  vpc_cidr = var.vpc_cidr
-#  ebs_data_size = var.ebs_data_size
-#  ebs_data_type = var.ebs_data_type
-#  tag_name = format("%s", "${var.tag_name}-web")
-#  acl_value = var.acl_value
-#  bucket_name = var.bucket_name
-#  force_destroy = var.force_destroy
-#  create_webservers = var.create_webservers
-#}
+module "monitor_server" {
+  source = "../modules/monitor-server"
+  create_monitor_server = var.create_monitor_server
+  ami_id = data.aws_ami.ubuntu-18.id
+  key_name = var.key_name
+  instance_type = "t3.micro"
+  subnet_ids = data.terraform_remote_state.vpc.outputs.public_subnets[*].id
+  allow_cidr_blocks = concat([var.vpc_cidr],["${data.http.myip.body}/32"])
+  common_security_group_id=data.terraform_remote_state.vpc.outputs.common_sg_id
+  vpc_id = data.aws_vpc.vpc.id
+  vpc_cidr = var.vpc_cidr
+  ebs_data_size = var.ebs_data_size
+  ebs_data_type = var.ebs_data_type
+  tag_name = format("%s", "${var.tag_name}-monitor")
+  acl_value = var.acl_value
+  attach_instance_profile = module.consul.consul_iam_instance_profile_name
+
+}
 #
 #module "database" {
 #  source = "../modules/db-server"

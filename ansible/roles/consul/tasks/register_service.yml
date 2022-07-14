@@ -26,3 +26,4 @@
     interval: 10s
   notify: restart consul
   when : ( inventory_hostname  != 'jenkins-server' )
+

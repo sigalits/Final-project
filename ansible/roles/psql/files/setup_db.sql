@@ -7,11 +7,11 @@ CREATE TABLE IF NOT EXISTS scheduler.instance_shutdown (
 	unique (instance_id, shutdown_hour)
 );
 
-CREATE ROLE ${app_user}
+CREATE ROLE kandula
 LOGIN
-PASSWORD '${app_user_password}';
+PASSWORD 'kan123';
 
-GRANT USAGE ON SCHEMA scheduler TO ${app_user};
-GRANT USAGE, SELECT ON SEQUENCE scheduler.instance_shutdown_schedule_id_seq TO ${app_user};
-GRANT  INSERT, SELECT, UPDATE, DELETE ON scheduler.instance_shutdown TO ${app_user};
+GRANT USAGE ON SCHEMA scheduler TO kandula;
+GRANT USAGE, SELECT ON SEQUENCE scheduler.instance_shutdown_schedule_id_seq TO kandula;
+GRANT  INSERT, SELECT, UPDATE, DELETE ON scheduler.instance_shutdown TO kandula;
 alter role kandula in database kanduladb set search_path='scheduler';

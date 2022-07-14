@@ -1,0 +1,15 @@
+---
+- name: configure psql
+  hosts:  psql
+  become: true
+  
+  vars:
+    allow_world_readable_tmpfiles: true
+    
+     
+  roles:
+  - psql
+
+
+
+

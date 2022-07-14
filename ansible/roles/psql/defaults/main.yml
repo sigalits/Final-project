@@ -1,0 +1,4 @@
+---
+# defaults file for node_exporter
+node_exporter_ver: "0.10.1"
+username: "postgres_exporter"

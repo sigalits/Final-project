@@ -1,45 +1,71 @@
 #Create security group for kandula web servers
 
+resource "aws_security_group" "monitor_sg" {
+  name        = "monitor_sg_1"
+  description = "Security group for monitoring server"
+  vpc_id      = var.vpc_id
+}
 
 resource "aws_security_group_rule" "http_access" {
     from_port = 80
     to_port = 80
     protocol = "tcp"
     type= "ingress"
-    security_group_id = var.security_group_kandula
+    security_group_id = aws_security_group.monitor_sg.id
     cidr_blocks = var.allow_cidr_blocks
     description = "Allow http"
 }
 
-resource "aws_security_group_rule" "web_ssh_access" {
+resource "aws_security_group_rule" "monitor_ssh_access" {
     from_port   = 22
     to_port     = 22
     protocol = "tcp"
     type= "ingress"
-    security_group_id = var.security_group_kandula
+    security_group_id = aws_security_group.monitor_sg.id
     cidr_blocks = var.allow_cidr_blocks
     description = "Allow ssh "
 }
 
-resource "aws_security_group_rule" "web_ping" {
+resource "aws_security_group_rule" "monitor_ping" {
     from_port   = 8
     to_port     = 0
     protocol = "icmp"
     type= "ingress"
-    security_group_id = var.security_group_kandula
+    security_group_id = aws_security_group.monitor_sg.id
     cidr_blocks = var.allow_cidr_blocks
     description = "Allow ping "
 }
 
-resource "aws_security_group_rule" "kandula_out" {
+resource "aws_security_group_rule" "monitor_out" {
     from_port   = 0
     to_port     = 0
     protocol = "-1"
     type= "egress"
-    security_group_id = var.security_group_kandula
+    security_group_id = aws_security_group.monitor_sg.id
     cidr_blocks = ["0.0.0.0/0"]
     description = "Allow out access "
 }
+
+  resource "aws_security_group_rule" "monitor_grafana_out" {
+    description = "Allow all traffic to HTTP port 3000"
+    from_port   = 3000
+    to_port     = 3000
+    protocol    = "TCP"
+    type= "ingress"
+    security_group_id = aws_security_group.monitor_sg.id
+    cidr_blocks = var.allow_cidr_blocks
+  }
+
+  resource "aws_security_group_rule" "monitor_prom_ui_out" {
+    description = "Allow all traffic to HTTP port 9090"
+    from_port   = 9090
+    to_port     = 9090
+    protocol    = "TCP"
+    type= "ingress"
+    security_group_id = aws_security_group.monitor_sg.id
+    cidr_blocks = var.allow_cidr_blocks
+  }
+
 
 #resource "aws_s3_bucket" "logs_bucket" {
 #    bucket = lower(var.bucket_name)
@@ -102,15 +128,15 @@ resource "aws_security_group_rule" "kandula_out" {
 
 
 
-resource "aws_instance" "kandula" {
-  count = var.create_webservers ? var.kandula_instance_count : 0
+resource "aws_instance" "monitoring" {
+  count = var.create_monitor_server ? 1 : 0
   ami  = var.ami_id
   key_name = var.key_name
   instance_type = var.instance_type
-  vpc_security_group_ids = [var.security_group_kandula,var.common_security_group_id]
+  vpc_security_group_ids = [aws_security_group.monitor_sg.id,var.common_security_group_id]
   associate_public_ip_address = "true"
-  subnet_id=var.subnet_ids[count.index]
-  #iam_instance_profile = aws_iam_instance_profile.s3_ec2_role.id
+  subnet_id=var.subnet_ids[0]
+  iam_instance_profile   = var.attach_instance_profile
   ebs_block_device {
     device_name           = "/dev/xvds"
     volume_type           = var.ebs_data_type
@@ -118,7 +144,9 @@ resource "aws_instance" "kandula" {
     delete_on_termination = true
     encrypted             = true
   }
-  #user_data = file("${path.module}/user_data_ngnix.sh")
+  user_data = file("${path.module}/user_data_monitor.sh")
   tags = { "Name" = "${var.tag_name}_${count.index}"
-  "consul_agent" = "true"}
+  consul_agent = "true"
+  node_exporter = "true"
+  purpose = "monitor"}
 }

@@ -1,0 +1,15 @@
+---
+- name: configure node expoter
+  hosts:  node_exporter
+  become: true
+  
+  vars:
+    allow_world_readable_tmpfiles: true
+    
+     
+  roles:
+  - node_exporter
+
+
+
+

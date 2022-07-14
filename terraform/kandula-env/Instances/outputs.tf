@@ -1,9 +1,9 @@
 #output "ec2_private_ip_kandula_instance" {
-#  value = module.web-server.kandula_private_ips[*]
+#  value = module.monitor-server.kandula_private_ips[*]
 #}
 #
 #output "ec2_public_ip_kandula_instance" {
-#  value = module.web-server.kandula_public_ips[*]
+#  value = module.monitor-server.kandula_public_ips[*]
 #}
 #
 #output "ec2_private_ip_database_instance" {
@@ -76,11 +76,11 @@ output "db_setup_script" {
 }
 
 output "rds_endpoint" {
-  value = aws_db_instance.kandula-db.address
+  value = aws_db_instance.kandula-db[*].address
 }
 
 output "rds_port" {
-  value = aws_db_instance.kandula-db.port
+  value = aws_db_instance.kandula-db[*].port
 }
 
 output "elk_server_public_ip" {
@@ -98,4 +98,8 @@ output "Jenkins_master_ip" {
 output "acm_certificate_arn" {
   description = "ARN of the ACM Certificate"
   value       = aws_acm_certificate.cert.arn
+}
+
+output "create_rds" {
+  value = var.create_rds
 }

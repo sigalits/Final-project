@@ -52,6 +52,8 @@ resource "aws_instance" "bastion" {
     "Name" = "${var.tag_name}"
     "bastion_server" = "true"
     "consul_agent"   = "true"
+    "node_exporter"  = "true"
+    "psql" = var.create_rds ? "true" : "false"
   }
     metadata_options {
     http_endpoint          = "enabled"

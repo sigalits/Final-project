@@ -1,0 +1,6 @@
+---
+db_name: kanduladb
+db_host: kanduladb.cdgrqeohqd7o.us-east-1.rds.amazonaws.com
+db_admin_user: master
+db_admin_password: postgres
+db_port: 5431

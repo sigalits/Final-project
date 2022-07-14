@@ -1,0 +1,4 @@
+---
+- include_tasks: install_psql.yml
+- include_tasks: install_postgress_exporter.yml
+  when: groups['psql'] is defined and inventory_hostname in groups['psql']

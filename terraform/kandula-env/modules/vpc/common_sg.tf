@@ -28,6 +28,19 @@ resource "aws_security_group_rule" "common_ping" {
     description = "Allow ping "
 }
 
+
+
+resource "aws_security_group_rule" "node_exporter_metrics" {
+    from_port   = 9100
+    to_port     = 9101
+    protocol = "tcp"
+    type = "ingress"
+    security_group_id = aws_security_group.common.id
+    self = true
+    description = "Allow internal NP metrics ports"
+}
+
+
 resource "aws_security_group_rule" "common_out" {
     from_port   = 0
     to_port     = 0

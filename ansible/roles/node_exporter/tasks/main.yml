@@ -1,0 +1,99 @@
+---
+# tasks file for node_exporter
+- name: Download node_exporter binary to local folder
+  become: false
+  get_url:
+    url: "https://github.com/prometheus/node_exporter/releases/download/v{{ node_exporter_ver }}/node_exporter-{{ node_exporter_ver }}.linux-amd64.tar.gz"
+    dest: "/tmp/node_exporter-{{ node_exporter_ver }}.linux-amd64.tar.gz"
+    mode: '0644'
+  register: _download_binary
+  until: _download_binary is succeeded
+  retries: 5
+  delay: 2
+  check_mode: false
+
+- name: Extract node_exporter
+  ansible.builtin.unarchive:
+    src: "/tmp/node_exporter-{{ node_exporter_ver }}.linux-amd64.tar.gz"
+    dest: "/tmp"
+    creates: "/tmp/node_exporter-{{ node_exporter_ver }}.linux-amd64/node_exporter"
+    remote_src: yes
+  check_mode: false
+
+- name: Propagate node_exporter binaries
+  copy:
+    src: "/tmp/node_exporter-{{ node_exporter_ver }}.linux-amd64/node_exporter"
+    dest: "/usr/local/bin/"
+    mode: 0755
+    remote_src: yes
+
+- name: Create node_exporter group
+  group:
+    name: node_exporter
+    state: present
+
+- name: Add the node_exporter user
+  ansible.builtin.user:
+    name: node_exporter
+    groups: node_exporter
+    shell: /bin/false
+    create_home: no
+    system: yes
+
+- name: Create collector folder
+  file:
+    path: /var/lib/node_exporter/textfile_collector
+    state: directory
+    owner: node_exporter
+    group: node_exporter
+    recurse: true
+
+- name: Change node_exporter bin owner
+  ansible.builtin.file:
+    path: /usr/local/bin/node_exporter
+    owner: node_exporter
+    group: node_exporter
+
+
+- name: Copy node_exporter service file
+  copy:
+    src: node_exporter.service
+    dest: /etc/systemd/system/node_exporter.service
+    owner: root
+    group: root
+    mode: 0644
+
+
+- name: Create Crontab job
+  cron:
+    name: "log active users"
+    minute: "*"
+    hour: "*"
+    day: "*"
+    job: 'echo "ec2_logged_in_sessions $(who | wc -l)" > /var/lib/node_exporter/textfile_collector/logged_in_sessions.prom'
+
+- name: Create Crontab job 2
+  cron:
+    name: "total_processes"
+    minute: "*"
+    hour: "*"
+    day: "*"
+    job: 'echo "ec2_total_processes $(ps -ef | wc -l)" > /var/lib/node_exporter/textfile_collector/total_processes.prom'
+
+- name: Reload systemd
+  ansible.builtin.systemd:
+    daemon_reload: yes
+
+- name: Start node_exporter service
+  ansible.builtin.systemd:
+    state: started
+    name: node_exporter
+    enabled: yes
+
+- name: Remove file (delete file)
+  ansible.builtin.file:
+    path: /tmp/node_exporter-{{ node_exporter_ver }}.linux-amd64.tar.gz
+    state: absent
+
+- name: Make sure node_exporter is running
+  systemd: state=started name=node_exporter

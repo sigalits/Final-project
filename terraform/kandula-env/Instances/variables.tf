@@ -249,7 +249,7 @@ variable "ansible_psql_role_vars_filepath" {
 variable "db_setup_script_filepath" {
   description = "file path for sql file used for initial db setup"
   type        = string
-  default     = "setup_db.sql"
+  default     = "../../../ansible/roles/psql/files/setup_db.sql"
 }
 
 variable "db_pgpass_file_setup" {
@@ -267,4 +267,13 @@ variable "create_rds" {
 variable "elk_instance_count" {
   type    = number
   default = 1
+}
+
+
+
+###MONITOR
+
+variable "create_monitor_server" {
+  type = bool
+  default = false
 }

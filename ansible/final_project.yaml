@@ -1,0 +1,22 @@
+---
+- name: opsschool final project
+  hosts:  final_project
+  become: true
+
+  vars:
+    allow_world_readable_tmpfiles: true
+
+  tasks:
+    - name: include consul
+      include_role:
+       name: consul
+      when: inventory_hostname in lookup('inventory_hostnames', 'consul_server:consul_agent')
+    - name: include node_exporter
+      include_role:
+       name: node_exporter
+      when: inventory_hostname in groups.node_exporter
+    - name: include psql tasks
+      include_role:
+        name: psql
+      when : ( inventory_hostname  in groups.psql )
+

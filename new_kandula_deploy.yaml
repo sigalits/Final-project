@@ -1,0 +1,108 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kandula-deployment
+  annotations:
+    kubernetes.io/change-cause: "First release Kandula:1"
+spec:
+  selector:
+    matchLabels:
+      app: kandula
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        version: v1
+        app: kandula
+    spec:
+      containers:
+      - name: kandula
+        image: sigalits/kandula-mid-prj:8
+        ports:
+        - containerPort: 5000
+        env:
+        - name: AWS_DEFAULT_REGION
+          value: us-east-1
+        - name: FLASK_ENV
+          value: development
+        envFrom:
+          - secretRef:
+               name: kandula-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kandula-service
+spec:
+  selector:
+    app: kandula
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 80
+      targetPort: 5000
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kandula-ingress
+  namespace: default
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+#    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+#    nlb.ingress.kubernetes.io/actions.ssl-redirect: '{"Type": "redirect", "RedirectConfig": { "Protocol": "HTTPS", "Port": "443", "StatusCode": "HTTP_301"}}'
+#    nlb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS":443}]'
+#    nlb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:us-east-1:797686858489:certificate/c1a3731b-495c-4268-81cf-f70e2dcb587f
+#    nlb.ingress.kubernetes.io/target-type: ip
+#    nlb.ingress.kubernetes.io/backend-protocol: HTTP
+
+    nlb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:us-east-1:797686858489:certificate/c1a3731b-495c-4268-81cf-f70e2dcb587f
+#    nlb.ingress.kubernetes.io/actions.ssl-redirect: '{"Type": "redirect", "RedirectConfig": { "Protocol": "HTTPS", "Port": "443", "StatusCode": "HTTP_301"}}'
+#    nlb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS":443}]'
+spec:
+  defaultBackend:
+    service:
+      name: kandula-service
+      port:
+        number: 80
+  rules:
+  - host: kandula.sigalits.com
+    http:
+        paths:
+          - path: /kandula
+            pathType: Prefix
+            backend:
+              service:
+                name: kandula-service
+                port:
+                  number: 80
+#    http:
+#       paths:
+#         - path: /
+#           pathType: Prefix
+#           backend:
+#             service:
+#               name: ssl-redirect
+#               port:
+#                 name: use-annotation
+#         - path: /*
+#           pathType: Prefix
+#           backend:
+#             service:
+#               name: kandula-service
+#               port:
+#                 number: 80
+#    tls:
+#      - hosts:
+#        - kandula.sigalits.com
+
+#    http:
+#        paths:
+#          - path: /kandula
+#            pathType: Prefix
+#            backend:
+#              service:
+#                name: kandula-service
+#                port:
+#                  number: 80
+
