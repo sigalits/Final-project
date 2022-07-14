@@ -10,7 +10,8 @@
 terraform/kandula-env/modules/eks/*.yaml
 # Crash log files
 crash.log
-
+ansible/roles/psql/files/setup_db.sql
+ansible/roles/psql/vars/main.yml
 
 # Ignore any .tfvars files that are generated automatically for each Terraform run. Most
 # .tfvars files are managed as part of configuration and so should be included in
