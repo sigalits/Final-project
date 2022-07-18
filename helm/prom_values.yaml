@@ -48,7 +48,7 @@ alertmanager:
   ##
   image:
     repository: quay.io/prometheus/alertmanager
-    tag: v0.23.0
+    tag: v0.24.0
     pullPolicy: IfNotPresent
 
   ## alertmanager priorityClassName
@@ -500,7 +500,7 @@ nodeExporter:
   ##
   image:
     repository: quay.io/prometheus/node-exporter
-    tag: v1.3.0
+    tag: v1.3.1
     pullPolicy: IfNotPresent
 
   ## Specify if a Pod Security Policy for node-exporter must be created
@@ -677,7 +677,7 @@ server:
   ##
   image:
     repository: quay.io/prometheus/prometheus
-    tag: v2.34.0
+    tag: v2.36.2
     pullPolicy: IfNotPresent
 
   ## prometheus server priorityClassName
@@ -1170,7 +1170,7 @@ pushgateway:
   ##
   image:
     repository: prom/pushgateway
-    tag: v1.4.2
+    tag: v1.4.3
     pullPolicy: IfNotPresent
 
   ## pushgateway priorityClassName
@@ -1451,6 +1451,59 @@ serverFiles:
         static_configs:
           - targets:
             - localhost:9090
+      - job_name: 'ec2-node-exporters'
+        consul_sd_configs:
+          - server: 'consul.service.consul:8500'
+            datacenter: kandula-dc
+        relabel_configs:
+          - source_labels: [ "__meta_consul_node" ]
+            regex: "k8s-sync"
+            action: drop
+          - source_labels: [ "__address__" ]
+            regex: ".*rds.amazonaws.com.*"
+            action: drop
+          - source_labels: [ "__address__" ]
+            target_label: "__address__"
+            regex: "(.*):(.*)"
+            replacement: "$1:9100"
+          - source_labels: [ '__meta_consul_node' ]
+            target_label: 'instance'
+
+
+      - job_name: 'ec2-postgres-exporters'
+        consul_sd_configs:
+          - server: 'consul.service.consul:8500'
+            datacenter: kandula-dc
+            services:
+              - kanduladb
+        relabel_configs:
+          - source_labels: [ '__meta_consul_address', '__meta_consul_service_port' ]
+            separator: ':'
+            regex: '(.*)'
+            target_label: '__address__'
+            replacement: '$1'
+          - source_labels: [ "__address__" ]
+            target_label: "__address__"
+            regex: "(.*):(.*)"
+            replacement: "$1:9101"
+
+      - job_name: "consul_metrics"
+        scrape_interval: 15s
+        consul_sd_configs:
+          - server: "consul.service.consul:8500"
+            datacenter: kandula-dc
+            services:
+              - consul
+        relabel_configs:
+          - source_labels: [ "__address__" ]
+            target_label: "__address__"
+            regex: "(.*):(.*)"
+            replacement: "$1:8500"
+          - source_labels: [ "__meta_consul_node" ]
+            target_label: "instance"
+        metrics_path: "/v1/agent/metrics"
+        params:
+          format: [ "prometheus" ]
 
       # A scrape configuration for running Prometheus on a Kubernetes cluster.
       # This uses separate scrape configs for cluster components (i.e. API server, node)
@@ -1783,6 +1836,7 @@ serverFiles:
           - source_labels: [__meta_kubernetes_pod_phase]
             regex: Pending|Succeeded|Failed|Completed
             action: drop
+
 
       # Example Scrape config for pods which should be scraped slower. An useful example
       # would be stackriver-exporter which queries an API on every scrape of the pod

@@ -59,5 +59,6 @@ variable "attach_instance_profile" {
 }
 
 variable "r53_zone_id" {}
+variable "create_rds" {}
 
 

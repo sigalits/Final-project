@@ -35,11 +35,21 @@ resource "aws_security_group_rule" "ui_access_out" {
 resource "aws_security_group_rule" "consul_internal_access" {
     from_port   = 8300
     to_port     = 8301
-    protocol = -1
+    protocol = "tcp"
     type= "ingress"
     security_group_id = var.common_sg_id
     self = true
     description = "Allow internal consul ports"
+}
+
+resource "aws_security_group_rule" "consul_server_access_from_eks" {
+    from_port   = 8500
+    to_port     = 8500
+    protocol = "tcp"
+    type= "ingress"
+    security_group_id = var.common_sg_id
+    self = true
+    description = "Allow consul server access from eks"
 }
 
 resource "aws_security_group_rule" "lb_incomming" {
@@ -77,7 +87,8 @@ resource "aws_instance" "consul" {
   #user_data = file("${path.module}/user_data_db.sh")
   tags = {
     "Name" = "${var.tag_name}_${count.index}"
-    "consul_server" = "true"
+    "consul_server"  = "true"
+    "node_exporter"  = "true"
   }
 }
 

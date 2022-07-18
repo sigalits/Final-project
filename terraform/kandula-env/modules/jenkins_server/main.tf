@@ -13,8 +13,9 @@ resource "aws_instance" "jenkins" {
   })
   tags = {
     Name = "jenkins-server"
-    consul_agent: "true"
-    purpose: "jenkins"
+    consul_agent = "true"
+    purpose = "jenkins"
+    node_exporter  = "true"
   }
 }
 

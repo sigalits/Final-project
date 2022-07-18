@@ -11,8 +11,21 @@ resource "aws_db_subnet_group" "kandula-db" {
   }
 }
 
+resource "aws_db_parameter_group" "pg" {
+  name   = "${var.instance_name}-pg"
+  family = "postgres12"
+
+  parameter {
+    name  = "shared_preload_libraries"
+    value = "pg_stat_statements,pg_hint_plan"
+    apply_method = "pending-reboot"
+
+  }
+}
+
 
 resource "aws_db_instance" "kandula-db" {
+  count = var.create_rds ? 1: 0
   allocated_storage      = var.db_storage
   engine                 = var.db_engine["engine"]
   identifier             = var.instance_name
@@ -26,11 +39,12 @@ resource "aws_db_instance" "kandula-db" {
   publicly_accessible    = false
   vpc_security_group_ids = [aws_security_group.rds_sg.id]
   db_subnet_group_name   = aws_db_subnet_group.kandula-db.name
+  parameter_group_name   = aws_db_parameter_group.pg.name
 }
 
-output "kandula_db_endpoint" {
-  value = format("%s:%s", aws_db_instance.kandula-db.address, aws_db_instance.kandula-db.port)
-}
+#output "kandula_db_endpoint" {
+#  value = format("%s:%s", aws_db_instance.kandula-db[*].address, aws_db_instance.kandula-db[*].port)
+#}
 
 resource "aws_security_group" "rds_sg" {
   name        = "rds-sg"
@@ -47,8 +61,8 @@ resource "aws_security_group" "rds_sg" {
 
 resource "aws_security_group_rule" "rds_psql_from_common_sg" {
   type                     = "ingress"
-  from_port                = aws_db_instance.kandula-db.port
-  to_port                  = aws_db_instance.kandula-db.port
+  from_port                = var.db_port
+  to_port                  = var.db_port
   protocol                 = "tcp"
   source_security_group_id = data.terraform_remote_state.vpc.outputs.common_sg_id
   description              = "Allow psql port tcp"
@@ -57,8 +71,8 @@ resource "aws_security_group_rule" "rds_psql_from_common_sg" {
 
 resource "aws_security_group_rule" "rds_psql_from_eks" {
   type                     = "ingress"
-  from_port                = aws_db_instance.kandula-db.port
-  to_port                  = aws_db_instance.kandula-db.port
+  from_port                = var.db_port
+  to_port                  = var.db_port
   protocol                 = "tcp"
   source_security_group_id = module.eks.all_worker_mgmt_sg_id
   description              = "Allow psql port tcp"
@@ -67,11 +81,12 @@ resource "aws_security_group_rule" "rds_psql_from_eks" {
 
 
    resource "aws_route53_record" "database" {
+      count = var.create_rds ? 1 : 0
       zone_id = data.aws_route53_zone.selected.id
       name = var.instance_name
       type = "CNAME"
       ttl = "60"
-      records = [aws_db_instance.kandula-db.address]
+      records = [aws_db_instance.kandula-db[0].address]
    }
 #resource "aws_security_group_rule" "rds_ssh" {
 #  type              = "ingress"
@@ -85,13 +100,15 @@ resource "aws_security_group_rule" "rds_psql_from_eks" {
 
 
 resource "local_file" "ansible_psql_role_vars" {
+  count = var.create_rds ? 1 : 0
   filename        = var.ansible_psql_role_vars_filepath
   file_permission = "0644"
   sensitive_content = templatefile("${path.module}/../templates/dbvars.tftpl", {
     db_name           = var.instance_name,
-    db_host           = aws_db_instance.kandula-db.address,
+    db_host           = aws_db_instance.kandula-db[0].address,
     db_admin_user     = local.db_credentials["admin_user"],
     db_admin_password = local.db_credentials["admin_password"]
+    db_port = var.db_port
   })
 }
 

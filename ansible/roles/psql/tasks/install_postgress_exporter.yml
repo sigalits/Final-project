@@ -1,0 +1,156 @@
+# tasks file for node_exporter
+- name: Download postgres_exporter binary to local folder
+  become: false
+  get_url:
+    url: "https://github.com/prometheus-community/postgres_exporter/releases/download/v{{ node_exporter_ver }}/postgres_exporter-{{ node_exporter_ver }}.linux-amd64.tar.gz"
+    dest: "/tmp/postgres_exporter-{{ node_exporter_ver }}.linux-amd64.tar.gz"
+    mode: '0644'
+  register: _download_binary
+  until: _download_binary is succeeded
+  retries: 5
+  delay: 2
+  check_mode: false
+
+- name: copy postgres_exporter queries
+  copy:
+    src: "queries.yaml"
+    dest: "/opt/postgres_exporter/queries.yaml"
+    mode: 0755
+
+
+- name: Extract postgres_exporter
+  ansible.builtin.unarchive:
+    src: "/tmp/postgres_exporter-{{ node_exporter_ver }}.linux-amd64.tar.gz"
+    dest: "/tmp"
+    creates: "/tmp/postgres_exporter-{{ node_exporter_ver }}.linux-amd64/postgres_exporter"
+    remote_src: yes
+  check_mode: false
+
+- name: Propagate postgres_exporter binaries
+  copy:
+    src: "/tmp/postgres_exporter-{{ node_exporter_ver }}.linux-amd64/postgres_exporter"
+    dest: "/usr/local/bin/"
+    mode: 0755
+    remote_src: yes
+
+- name: Create postgres group
+  group:
+    name: postgres
+    state: present
+
+- name: Add the postgres user
+  ansible.builtin.user:
+    name: postgres
+    groups: postgres
+    shell: /bin/false
+    create_home: no
+    system: yes
+
+
+- name: Change postgres_exporter bin owner
+  ansible.builtin.file:
+    path: /usr/local/bin/postgres_exporter
+    owner: postgres
+    group: postgres
+
+- name: Create /opt/postgres_exporter dir
+  become: true
+  file:
+    state: directory
+    path: /opt/postgres_exporter
+    owner: postgres
+    mode: 0755
+
+- name: Create a user, grant SELECT on pg_catalog.pg_stat_database
+  community.postgresql.postgresql_user:
+    db: postgres
+    port: "{{ db_port }}"
+    login_host: "{{ db_host}}"
+    login_user: "{{ db_admin_user }}"
+    login_password: "{{ db_admin_password }}"
+    name: "{{ username }}"
+    password: "{{db_admin_password}}"
+    priv: 'pg_catalog.pg_stat_database:SELECT'
+
+- name: create pg_stat_statement extention
+  community.postgresql.postgresql_query:
+    db: postgres
+    login_host: "{{db_host }}"
+    port: "{{db_port }}"
+    login_user: "{{ db_admin_user }}"
+    login_password: "{{ db_admin_password }}"
+    query: "create extension pg_stat_statements "
+  ignore_errors: yes
+
+- name: copy setup sql script
+  copy:
+    src: ./files/postgres_exporter_objects.sql
+    dest: /home/ubuntu/
+    owner: ubuntu
+    mode: '0775'
+  tags:
+    - include_psql_role
+
+- name: run sql to grant exporter privs
+  community.postgresql.postgresql_script:
+    db: postgres
+    port: "{{ db_port }}"
+    login_host: "{{ db_host}}"
+    login_user: "{{ db_admin_user }}"
+    login_password: "{{ db_admin_password }}"
+    path: /home/ubuntu/postgres_exporter_objects.sql
+    encoding: UTF-8
+  tags:
+    - include_psql_role
+  ignore_errors: yes
+
+- name: validate exporter views
+  community.postgresql.postgresql_query:
+    db: postgres
+    port: "{{ db_port }}"
+    login_host: "{{ db_host}}"
+    login_user: "{{ username }}"
+    login_password: "{{ db_admin_password }}"
+    query : "select count(*) from pg_stat_statements"
+  tags:
+    - include_psql_role
+
+
+- name: Copy postgres_exporter env file
+  template:
+    src: postgres_exporter.env.j2
+    dest: /opt/postgres_exporter/postgres_exporter.env
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Copy postgres_exporter service file
+  copy:
+    src: postgres_exporter.service
+    dest: /etc/systemd/system/postgres_exporter.service
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart_postgres_exporter
+
+- name: Reload systemd
+  ansible.builtin.systemd:
+    daemon_reload: yes
+
+
+- name: Start postgres_exporter service
+  ansible.builtin.systemd:
+    state: started
+    name: postgres_exporter
+    enabled: yes
+
+- name: Remove file (delete file)
+  ansible.builtin.file:
+    path: /tmp/postgres_exporter-{{ node_exporter_ver }}.linux-amd64.tar.gz
+    state: absent
+
+
+
+- name: Make sure postgres_exporter is running
+  systemd: state=started name=postgres_exporter
+

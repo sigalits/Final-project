@@ -40,6 +40,7 @@ module "ec2-instance" {
   tags = {
     Terraform   = "true"
     Environment = "dev"
+    node_exporter = "true"
   }
 }
 
