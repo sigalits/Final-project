@@ -35,7 +35,7 @@
 
 - name: run sql script on rds db
   community.postgresql.postgresql_script:
-    db: "{{ db_name }}"
+    login_db: "{{ db_name }}"
     port: "{{ db_port }}"
     login_host: "{{ db_host}}"
     login_user: "{{ db_admin_user }}"
@@ -65,6 +65,7 @@
 
 - name: run sql script on rds db
   community.postgresql.postgresql_script:
+    db: "postgres"
     port: "{{ db_port }}"
     login_host: "{{ db_host}}"
     login_user: "{{ db_admin_user }}"
@@ -74,11 +75,3 @@
   tags:
     - include_psql_role
   ignore_errors: yes
-
-
-
-- name: Create a user, grant SELECT on pg_catalog.pg_stat_database
-  community.postgresql.postgresql_user:
-    name: "{{ username }}"
-    password: "{{db_admin_password}}"
-    priv: 'pg_catalog.pg_stat_database:SELECT'

@@ -80,14 +80,7 @@ resource "aws_security_group_rule" "rds_psql_from_eks" {
 }
 
 
-   resource "aws_route53_record" "database" {
-      count = var.create_rds ? 1 : 0
-      zone_id = data.aws_route53_zone.selected.id
-      name = var.instance_name
-      type = "CNAME"
-      ttl = "60"
-      records = [aws_db_instance.kandula-db[0].address]
-   }
+
 #resource "aws_security_group_rule" "rds_ssh" {
 #  type              = "ingress"
 #  from_port         = 22

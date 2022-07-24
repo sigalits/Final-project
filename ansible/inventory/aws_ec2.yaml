@@ -14,6 +14,8 @@ groups:
   node_exporter: "'true' in tags.node_exporter"
   final_project: "'Final' in tags.project"
   psql : "'true' in tags.psql"
+  elk : "'true' in tags.elk_server"
+  filebeat : "'true' in tags.filebeat"
 
   #jenkins_server: "'true' in tags.consul_agent and 'true' in tags.jenkins-server"
   #ansible_ssh_private_key: /home/ubuntu/consul.key

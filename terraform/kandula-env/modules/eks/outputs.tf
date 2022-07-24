@@ -35,3 +35,7 @@ output "oidc_provider_arn" {
 output "all_worker_mgmt_sg_id" {
   value = aws_security_group.all_worker_mgmt.id
 }
+
+output "r53_policy_arn" {
+  value = aws_iam_policy.route53.arn
+}

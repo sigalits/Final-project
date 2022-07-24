@@ -53,6 +53,7 @@ resource "aws_instance" "bastion" {
     "bastion_server" = "true"
     "consul_agent"   = "true"
     "node_exporter"  = "true"
+    "filebeat"       = "true"
     "psql" = var.create_rds ? "true" : "false"
   }
     metadata_options {

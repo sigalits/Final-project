@@ -1,9 +1,7 @@
 create_consul_servers = true
-create_jenkins_servers = false
-create_monitor_server = true
+create_jenkins_servers = true
 jenkins_nodes_count = 2
-create_consul_lb = true
-create_lb = false
+create_lb = true
 force_destroy = true
 jenkins_key_name="sigal_jenkins_ec2_key"
 create_rds = true
@@ -11,4 +9,4 @@ create_eks = true
 eks_instance_types_1 = ["t3.medium"]
 eks_instance_types_2 = ["t3.medium"]
 eks_instance_count = 2
-elk_instance_count = 0
+create_elk = true

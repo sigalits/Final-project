@@ -50,7 +50,7 @@ output "oidc_provider_arn" {
   value = module.eks.oidc_provider_arn
 }
 
-output "Jenkins_nodes_ip" {
+output "jenkins_nodes_ip" {
   value = aws_instance.jenkins-node[*].private_ip
 }
 
@@ -59,12 +59,8 @@ output "bastion_ip" {
   value = module.bastion.bastion_servers_public_ips[0]
 }
 
-output "Jenkins_alb" {
-  value = aws_lb.jenkins_lb[*].dns_name
-}
-
-output "consul_alb" {
-  value = module.consul.lb_consul_dns
+output "ops_alb" {
+  value = aws_lb.ops_lb[*].dns_name
 }
 
 #output "eks_instance_desired_size_eks" {
@@ -83,15 +79,15 @@ output "rds_port" {
   value = aws_db_instance.kandula-db[*].port
 }
 
-output "elk_server_public_ip" {
-  value = module.ec2-instance.public_ip[*]
+output "elk_server_private_ip" {
+  value = aws_instance.elk[*].private_ip
 }
 #output "kibana_url" {
 #  value= "https://${aws_route53_record.jenkins_record[0].name}.${data.terraform_remote_state.vpc.outputs.domain_name}:5601"
 # # value = "http://${module.ec2-instance.public_ip[0]}:5601"
 #}
 
-output "Jenkins_master_ip" {
+output "jenkins_master_ip" {
   value = module.jenkins_server.jenkins_server_ip
 }
 
@@ -102,4 +98,39 @@ output "acm_certificate_arn" {
 
 output "create_rds" {
   value = var.create_rds
+}
+
+output "r53_policy_arn" {
+  value = module.eks.r53_policy_arn
+}
+
+output "ops_dns" {
+  value = aws_lb.ops_lb[*].dns_name
+}
+
+#output "consul_lb_arn" {
+#  value = aws_lb.consul_lb[*].arn
+#}
+
+output "elk_alb_sg_id" {
+  value = aws_security_group.elk_alb_security_group.id
+}
+
+output "elk_ip" {
+  value =aws_instance.elk[0].private_ip
+}
+
+output "db_user" {
+  value = local.db_credentials["username"]
+  sensitive = true
+}
+
+output "db_pass" {
+  value = local.db_credentials["password"]
+  sensitive = true
+}
+
+output "db_name" {
+  value = local.db_credentials["dbname"]
+  sensitive = true
 }

@@ -12,6 +12,10 @@ terraform/kandula-env/modules/eks/*.yaml
 crash.log
 ansible/roles/psql/files/setup_db.sql
 ansible/roles/psql/vars/main.yml
+grafana_svc.yml
+prometheus_svc.yml
+tls.tf
+*/pod_env.yaml
 
 # Ignore any .tfvars files that are generated automatically for each Terraform run. Most
 # .tfvars files are managed as part of configuration and so should be included in

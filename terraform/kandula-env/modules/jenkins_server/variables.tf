@@ -55,12 +55,3 @@ variable "efs_dns" {
 }
 
 variable "aws_region" {}
-
-variable "create_lb" {
-  description = "Do we Want to create LB"
-  type = bool
-}
-
-variable "aws_acm_certificate_arn" {
-  default = "aws public certificate arn"
-}

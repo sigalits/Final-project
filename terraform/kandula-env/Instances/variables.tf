@@ -12,7 +12,11 @@ variable "aws_region" {
        default     = "us-east-1"
 }
 
-
+variable "create_lb" {
+  description = "Do we Want to create LB"
+  type = bool
+  default = false
+}
 ####eks
 variable "create_eks" {
   default = false
@@ -58,7 +62,7 @@ variable "force_destroy" {
 
 variable "instance_type" {
     description = "instance type for ec2"
-    default     =  "t2.micro"
+    default     =  "t3.micro"
 }
 
 variable "security_group_kandula" {
@@ -130,7 +134,7 @@ variable "security_group_consul" {
 
 variable "consul_ami_id" {
   description = "Ubuntu 21.10 ami"
-  default = "ami-0fcda042dd8ae41c7"
+  default = "ami-0e216061342a89a3a"   # "ami-0fcda042dd8ae41c7"
 }
 
 variable "create_consul_servers" {
@@ -139,11 +143,6 @@ variable "create_consul_servers" {
   default = true
 }
 
-variable "create_consul_lb" {
-  description = "Do we Want to create LB"
-  type = bool
-  default = true
-}
 
 ####jenkins#####
 
@@ -192,12 +191,6 @@ variable "jenkins_nodes_ami" {
 }
 
 
-variable "create_lb" {
-  description = "Do we Want to create LB"
-  type = bool
-  default = false
-}
-
 
 ######RDS######
 
@@ -231,7 +224,7 @@ variable "db_engine" {
 variable "db_instance_class" {
   description = "instance type to be used for db instances"
   type        = string
-  default     = "db.t2.micro"
+  default     = "db.t3.micro"
 }
 
 variable "db_port" {
@@ -264,11 +257,15 @@ variable "create_rds" {
 
 
 ####### ELK
-variable "elk_instance_count" {
-  type    = number
-  default = 1
+variable "create_elk" {
+  type    = bool
+  default = false
 }
 
+variable "elk_instance_type" {
+  type    = string
+  default = "t3.medium"
+}
 
 
 ###MONITOR
