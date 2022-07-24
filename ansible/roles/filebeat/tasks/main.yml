@@ -1,0 +1,31 @@
+---
+# tasks file for filebeat
+- name: download filebeat deb file
+  get_url:
+    url: https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-oss-7.11.0-amd64.deb
+    dest: /tmp/filebeat-oss-7.11.0-amd64.deb
+
+- name: install filebeat from deb file
+  apt:
+    deb: /tmp/filebeat-oss-7.11.0-amd64.deb
+
+#- name: keep filebeat original config yml
+#  command: mv /etc/filebeat/filebeat.yml /etc/filebeat/filebeat.yml.BCK
+
+
+- name: copy filebeat config yml
+  template:
+    src: filebeat.j2
+    dest: /etc/filebeat/filebeat.yml
+    mode: 0644
+    backup: yes
+  notify:
+    - restart filebeat
+
+- name: start filebeat service
+  systemd:
+    daemon_reload: yes
+    name: filebeat
+    enabled: yes
+    state: restarted
+

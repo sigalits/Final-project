@@ -1,0 +1,3 @@
+---
+elk_dest: "{{ 'localhost' if  inventory_hostname  == 'kandula-elk' else 'kandula-elk-elasticsearch.service.consul' }}"
+# vars file for filebeat
