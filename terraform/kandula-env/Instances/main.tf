@@ -7,7 +7,7 @@ locals {
 
 resource "aws_instance" "jenkins-node" {
   count = var.create_jenkins_servers ? var.jenkins_nodes_count: 0
-  private_ip = element(var.jenkins_node_private_ip,count.index)
+  #private_ip = element(var.jenkins_node_private_ip,count.index)
   ami = var.jenkins_nodes_ami
   instance_type               = var.instance_type
   key_name                    = var.jenkins_key_name
@@ -31,8 +31,9 @@ module "consul" {
   source = "../modules/consul"
   consul_instance_count = var.consul_instance_count
   create_consul_servers = var.create_consul_servers
-  create_consul_lb = var.create_consul_lb
-  ami_id = var.consul_ami_id
+  create_lb = var.create_lb
+  #ami_id = var.consul_ami_id
+  ami_id = data.aws_ami.ubuntu-18.id
   key_name = var.key_name
   instance_type = var.instance_type
   subnet_ids = data.terraform_remote_state.vpc.outputs.private_subnets[*].id
@@ -41,14 +42,14 @@ module "consul" {
   az = local.azs
   vpc_id = data.aws_vpc.vpc.id
   vpc_cidr = var.vpc_cidr
+  allow_cidr_blocks = concat([var.vpc_cidr],["${data.http.myip.body}/32"])
   #lb_arn = data.terraform_remote_state.vpc.outputs.lb_arn
   #lb_sg_id = data.terraform_remote_state.vpc.outputs.lb_jenkins_sg_id
   security_group_consul = var.security_group_consul
   common_sg_id = data.terraform_remote_state.vpc.outputs.common_sg_id
   security_group_consul_lb = var.security_group_consul_lb
-  r53_zone_id = data.aws_route53_zone.selected.zone_id
-  acm_certificate_arn = aws_acm_certificate.cert.arn
   tag_name = format("%s", "${var.tag_name}-consul")
+  consul_lb_sg_id = aws_security_group.consul_lb_sg.id
   }
 
 module "bastion" {
@@ -120,41 +121,29 @@ module "jenkins_server"  {
   aws_region                  = var.aws_region
   common_sg                   = data.terraform_remote_state.vpc.outputs.common_sg_id
   lb_sg_id                    = aws_security_group.jenkins_lb_sg.id
-  create_lb                   = var.create_lb
-  aws_acm_certificate_arn = aws_acm_certificate.cert.arn
   tag_name = var.tag_name
 }
 
 
-resource "aws_route53_record" "jenkins_record" {
-  count = var.create_lb ? 1 : 0
-  zone_id = data.aws_route53_zone.selected.zone_id
-  #zone_id = aws_route53_zone.myZone[0].zone_id
-  name    = "jenkins"
-  type    = "CNAME"
-  ttl =  60
-  records = [aws_lb.jenkins_lb[0].dns_name]
-}
-
-
-module "monitor_server" {
-  source = "../modules/monitor-server"
-  create_monitor_server = var.create_monitor_server
-  ami_id = data.aws_ami.ubuntu-18.id
-  key_name = var.key_name
-  instance_type = "t3.micro"
-  subnet_ids = data.terraform_remote_state.vpc.outputs.public_subnets[*].id
-  allow_cidr_blocks = concat([var.vpc_cidr],["${data.http.myip.body}/32"])
-  common_security_group_id=data.terraform_remote_state.vpc.outputs.common_sg_id
-  vpc_id = data.aws_vpc.vpc.id
-  vpc_cidr = var.vpc_cidr
-  ebs_data_size = var.ebs_data_size
-  ebs_data_type = var.ebs_data_type
-  tag_name = format("%s", "${var.tag_name}-monitor")
-  acl_value = var.acl_value
-  attach_instance_profile = module.consul.consul_iam_instance_profile_name
-
-}
+#
+#module "monitor_server" {
+#  source = "../modules/monitor-server"
+#  create_monitor_server = var.create_monitor_server
+#  ami_id = data.aws_ami.ubuntu-18.id
+#  key_name = var.key_name
+#  instance_type = "t3.micro"
+#  subnet_ids = data.terraform_remote_state.vpc.outputs.public_subnets[*].id
+#  allow_cidr_blocks = concat([var.vpc_cidr],["${data.http.myip.body}/32"])
+#  common_security_group_id=data.terraform_remote_state.vpc.outputs.common_sg_id
+#  vpc_id = data.aws_vpc.vpc.id
+#  vpc_cidr = var.vpc_cidr
+#  ebs_data_size = var.ebs_data_size
+#  ebs_data_type = var.ebs_data_type
+#  tag_name = format("%s", "${var.tag_name}-monitor")
+#  acl_value = var.acl_value
+#  attach_instance_profile = module.consul.consul_iam_instance_profile_name
+#
+#}
 #
 #module "database" {
 #  source = "../modules/db-server"

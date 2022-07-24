@@ -9,8 +9,6 @@ resource "aws_acm_certificate" "cert" {
 }
 
 
-
-
 resource "aws_route53_record" "acm_verification" {
   zone_id = data.aws_route53_zone.selected.zone_id
   type    = tolist(aws_acm_certificate.cert.domain_validation_options)[0].resource_record_type

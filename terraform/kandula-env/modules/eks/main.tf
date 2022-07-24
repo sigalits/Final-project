@@ -1,3 +1,9 @@
+data "aws_caller_identity" "current" {}
+
+locals  {
+  account_id = data.aws_caller_identity.current.account_id
+}
+
 resource "aws_security_group" "all_worker_mgmt" {
   name_prefix = "${var.tag_name}-eks-worker-management-sg"
   vpc_id      = var.vpc_id
@@ -53,7 +59,7 @@ resource "aws_security_group" "all_worker_mgmt" {
     cidr_blocks = [var.vpc_cidr]
   }
   ingress {
-    description = "Consul"
+    description = "grafana"
     from_port   = 3000
     to_port     = 3000
     protocol    = "tcp"
@@ -82,6 +88,7 @@ output "eks_instance_count_from_eks" {
 output "eks_instance_desired_size_eks" {
   value = local.desired_size
 }
+
 module "eks" {
   source          = "terraform-aws-modules/eks/aws"
   #version         = "18.6.1"
@@ -153,31 +160,14 @@ module "eks" {
           source_security_group_id = var.common_security_group_id
           description              = "Allow consul port 8080"
         }
-
-#    consul_port_9091 = {
-#          type                     = "ingress"
-#          from_port                = 9091
-#          to_port                  = 9091
-#          protocol                 = "tcp"
-#          source_security_group_id = var.common_security_group_id
-#          description              = "Allow consul port 9090"
-#        }
-#    consul_port_9153 = {
-#          type                     = "ingress"
-#          from_port                = 9153
-#          to_port                  = 9153
-#          protocol                 = "tcp"
-#          source_security_group_id = var.common_security_group_id
-#          description              = "Allow consul port 9153"
-#        }
-#    consul_port_8600 = {
-#          type                     = "ingress"
-#          from_port                = 8600
-#          to_port                  = 8600
-#          protocol                 = "tcp"
-#          source_security_group_id = var.common_security_group_id
-#          description              = "Allow consul port 600"
-#        }
+      elastic_port_9200 = {
+          type                     = "egress"
+          from_port                = 9200
+          to_port                  = 9200
+          protocol                 = "tcp"
+          source_security_group_id = var.common_security_group_id
+          description              = "Allow elastic port 9200 out"
+        }
     }
 
   tags = {
@@ -193,6 +183,7 @@ module "eks" {
     #instance_types         = ["t3.medium"]
     instance_types         = var.eks_instance_types_1
     vpc_security_group_ids = [aws_security_group.all_worker_mgmt.id , var.common_security_group_id]
+    iam_role_additional_policies = ["arn:aws:iam::${local.account_id}:policy/route53"]
   }
 
   eks_managed_node_groups = {

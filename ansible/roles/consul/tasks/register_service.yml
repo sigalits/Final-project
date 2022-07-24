@@ -19,7 +19,7 @@
   notify: restart consul
   when : ( inventory_hostname  == 'jenkins-server' )
 
-- name: register jenkins-server with  port 22
+- name: register servers with  port 22
   consul:
     service_name: "{{ inventory_hostname }}"
     service_port: "22" 
@@ -27,3 +27,22 @@
   notify: restart consul
   when : ( inventory_hostname  != 'jenkins-server' )
 
+- name: register elasticsearch with http port 9200
+  consul:
+    service_name: "{{ inventory_hostname }}-elasticsearch"
+    service_port: "9200"
+    interval: 10s
+    http: http://localhost:9200/_cluster/health
+    tags: ["logging"]
+  notify: restart consul
+  when : ( groups['elk'] is defined and inventory_hostname in groups.elk)
+
+- name: register kibana with http port 5601
+  consul:
+    service_name: "{{ inventory_hostname }}-kibana"
+    service_port: "5601"
+    interval: 10s
+    http: http://localhost:5601/status
+    tags: ["logging"]
+  notify: restart consul
+  when : ( groups['elk'] is defined and inventory_hostname in groups.elk )

@@ -15,7 +15,7 @@ variable "subnet_ids" {
   description = "private subnets id's"
   type = list(string)
 }
-variable "create_consul_lb" {
+variable "create_lb" {
   description = "Do we Want to create LB"
   type = bool
 }
@@ -86,5 +86,8 @@ variable "iam_instance_profile_name" {
 #  description = "Load blance Security group"
 #}
 
-variable "acm_certificate_arn" {}
-variable "r53_zone_id" {}
+
+
+variable "allow_cidr_blocks" {}
+
+variable "consul_lb_sg_id" {}

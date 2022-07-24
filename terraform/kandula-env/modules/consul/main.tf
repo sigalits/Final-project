@@ -5,74 +5,8 @@ resource "aws_security_group" "consul" {
   vpc_id = var.vpc_id
 }
 
-resource "aws_security_group" "consul_lb_sg" {
-  name = var.security_group_consul_lb
-  description = "security group for load balancers of consul"
-  vpc_id = var.vpc_id
-}
 
-resource "aws_security_group_rule" "ui_access" {
-    from_port   = 8500
-    to_port     = 8500
-    protocol = "tcp"
-    type= "ingress"
-    security_group_id = aws_security_group.consul.id
-    #source_security_group_id = var.lb_sg_id
-    source_security_group_id = aws_security_group.consul_lb_sg.id
-    description = "Allow ui port"
-}
-resource "aws_security_group_rule" "ui_access_out" {
-    from_port   = 8500
-    to_port     = 8500
-    protocol = "tcp"
-    type= "egress"
-    ##security_group_id = var.lb_sg_id
-    security_group_id = aws_security_group.consul_lb_sg.id
-    self = true
-    description = "open ui out port"
-}
 
-resource "aws_security_group_rule" "consul_internal_access" {
-    from_port   = 8300
-    to_port     = 8301
-    protocol = "tcp"
-    type= "ingress"
-    security_group_id = var.common_sg_id
-    self = true
-    description = "Allow internal consul ports"
-}
-
-resource "aws_security_group_rule" "consul_server_access_from_eks" {
-    from_port   = 8500
-    to_port     = 8500
-    protocol = "tcp"
-    type= "ingress"
-    security_group_id = var.common_sg_id
-    self = true
-    description = "Allow consul server access from eks"
-}
-
-resource "aws_security_group_rule" "lb_incomming" {
-    from_port   = 80
-    to_port     = 80
-    protocol = "tcp"
-    type= "ingress"
-    ##security_group_id = var.lb_sg_id
-    security_group_id = aws_security_group.consul_lb_sg.id
-    cidr_blocks = ["0.0.0.0/0"]
-    description = "Allow access from outside on 80 "
-}
-
-resource "aws_security_group_rule" "lb_incomming_tls" {
-    from_port   = 443
-    to_port     = 443
-    protocol = "tcp"
-    type= "ingress"
-    ##security_group_id = var.lb_sg_id
-    security_group_id = aws_security_group.consul_lb_sg.id
-    cidr_blocks = ["0.0.0.0/0"]
-    description = "Allow access from outside on 443 "
-}
 
 resource "aws_instance" "consul" {
   count = var.create_consul_servers ? var.consul_instance_count: 0
@@ -80,8 +14,8 @@ resource "aws_instance" "consul" {
   key_name = var.key_name
   instance_type = var.instance_type
   associate_public_ip_address = false
-  vpc_security_group_ids = [aws_security_group.consul.id , var.common_sg_id ,aws_security_group.consul_lb_sg.id]
-  ##vpc_security_group_ids = [aws_security_group.consul.id , var.common_sg_id ]
+  #vpc_security_group_ids = [aws_security_group.consul.id , var.common_sg_id ,aws_security_group.consul_lb_sg.id]
+  vpc_security_group_ids = [aws_security_group.consul.id , var.common_sg_id , var.consul_lb_sg_id ,var.consul_lb_sg_id ]
   iam_instance_profile   = aws_iam_instance_profile.consul-join.name
   subnet_id = element(var.subnet_ids,count.index)
   #user_data = file("${path.module}/user_data_db.sh")
@@ -89,17 +23,11 @@ resource "aws_instance" "consul" {
     "Name" = "${var.tag_name}_${count.index}"
     "consul_server"  = "true"
     "node_exporter"  = "true"
+    "filebeat"       = "true"
   }
 }
 
-resource "aws_route53_record" "consul_record" {
-  count = var.create_consul_servers ? 1 : 0
-  zone_id = var.r53_zone_id
-  name    = "consul"
-  type    = "CNAME"
-  ttl =  60
-  records = [aws_lb.consul_lb[0].dns_name]
-}
+
 
 
 

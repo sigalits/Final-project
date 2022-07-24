@@ -9,10 +9,12 @@ output  "consul_server" {
   value = aws_instance.consul
 }
 
-output "lb_consul_dns" {
-  value = aws_lb.consul_lb[*].dns_name
-}
+
 
 output "consul_iam_instance_profile_name" {
   value = aws_iam_instance_profile.consul-join.name
+}
+
+output "consul_sg_id" {
+  value = aws_security_group.consul.id
 }

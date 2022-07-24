@@ -16,6 +16,7 @@ resource "aws_instance" "jenkins" {
     consul_agent = "true"
     purpose = "jenkins"
     node_exporter  = "true"
+    filebeat       = "true"
   }
 }
 

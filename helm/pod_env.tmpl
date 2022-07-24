@@ -1,0 +1,12 @@
+#Create a pod and expose port 5000
+apiVersion: v1
+kind: Secret
+metadata:
+  name: kandula-secret
+type: Opaque
+data:
+  AWS_ACCESS_KEY_ID : QUtJQTNUT09YUUw0UjRDTk4zSEI=
+  AWS_SECRET_ACCESS_KEY : Q0FNaGtNYlY3R2xxM0owamwzRlBFVGs0ZUd1ZXo2N3lOQ0dQN2NUYw==
+  DB_USER: ${db_user}
+  DB_PASS: ${db_pass}
+  DB_NAME: ${db_name}

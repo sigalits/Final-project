@@ -67,6 +67,7 @@ metadata:
     # Fixes issues with force ssl redirect
     service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: "*"
     service.beta.kubernetes.io/aws-load-balancer-connection-idle-timeout: "3600"
+    external-dns.alpha.kubernetes.io/hostname: grafana.sigalits.com
 spec:
   selector:
     app: kandula

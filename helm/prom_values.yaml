@@ -1451,6 +1451,7 @@ serverFiles:
         static_configs:
           - targets:
             - localhost:9090
+
       - job_name: 'ec2-node-exporters'
         consul_sd_configs:
           - server: 'consul.service.consul:8500'
@@ -1504,6 +1505,20 @@ serverFiles:
         metrics_path: "/v1/agent/metrics"
         params:
           format: [ "prometheus" ]
+
+      - job_name: 'kandula_metrics'
+        kubernetes_sd_configs:
+          - role: endpoints
+        relabel_configs:
+          - source_labels: [ '_address_' ]
+            target_label: '_address_'
+            regex: "(.):(.)"
+            replacement: "$1:5000"
+          - source_labels: [ "__meta_kubernetes_service_name" ]
+            target_label: "kandula-service"
+            regex: "kandula-service(.*)"
+            action: keep
+
 
       # A scrape configuration for running Prometheus on a Kubernetes cluster.
       # This uses separate scrape configs for cluster components (i.e. API server, node)
@@ -1836,7 +1851,6 @@ serverFiles:
           - source_labels: [__meta_kubernetes_pod_phase]
             regex: Pending|Succeeded|Failed|Completed
             action: drop
-
 
       # Example Scrape config for pods which should be scraped slower. An useful example
       # would be stackriver-exporter which queries an API on every scrape of the pod

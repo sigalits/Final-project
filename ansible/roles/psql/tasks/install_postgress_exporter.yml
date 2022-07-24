@@ -11,12 +11,6 @@
   delay: 2
   check_mode: false
 
-- name: copy postgres_exporter queries
-  copy:
-    src: "queries.yaml"
-    dest: "/opt/postgres_exporter/queries.yaml"
-    mode: 0755
-
 
 - name: Extract postgres_exporter
   ansible.builtin.unarchive:
@@ -53,6 +47,7 @@
     owner: postgres
     group: postgres
 
+
 - name: Create /opt/postgres_exporter dir
   become: true
   file:
@@ -61,11 +56,17 @@
     owner: postgres
     mode: 0755
 
+- name: copy postgres_exporter queries
+  copy:
+    src: "queries.yaml"
+    dest: "/opt/postgres_exporter/queries.yaml"
+    mode: 0755
+
 - name: Create a user, grant SELECT on pg_catalog.pg_stat_database
   community.postgresql.postgresql_user:
     db: postgres
-    port: "{{ db_port }}"
     login_host: "{{ db_host}}"
+    port: "{{ db_port }}"
     login_user: "{{ db_admin_user }}"
     login_password: "{{ db_admin_password }}"
     name: "{{ username }}"

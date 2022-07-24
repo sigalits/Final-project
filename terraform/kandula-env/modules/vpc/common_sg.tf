@@ -40,6 +40,15 @@ resource "aws_security_group_rule" "node_exporter_metrics" {
     description = "Allow internal NP metrics ports"
 }
 
+resource "aws_security_group_rule" "elasticsearch_metrics" {
+    from_port   = 9200
+    to_port     = 9200
+    protocol = "tcp"
+    type = "ingress"
+    security_group_id = aws_security_group.common.id
+    self = true
+    description = "Allow internal elasticsearch ports"
+}
 
 resource "aws_security_group_rule" "common_out" {
     from_port   = 0
@@ -49,4 +58,23 @@ resource "aws_security_group_rule" "common_out" {
     security_group_id = aws_security_group.common.id
     cidr_blocks = ["0.0.0.0/0"]
     description = "Allow access out "
+}
+resource "aws_security_group_rule" "consul_internal_access" {
+    from_port   = 8300
+    to_port     = 8301
+    protocol = "tcp"
+    type= "ingress"
+    security_group_id = aws_security_group.common.id
+    self = true
+    description = "Allow internal consul ports"
+}
+
+resource "aws_security_group_rule" "consul_server_access_from_eks" {
+    from_port   = 8500
+    to_port     = 8500
+    protocol = "tcp"
+    type= "ingress"
+    security_group_id = aws_security_group.common.id
+    self = true
+    description = "Allow consul server access from eks"
 }
