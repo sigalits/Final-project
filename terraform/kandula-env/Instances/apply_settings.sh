@@ -166,6 +166,8 @@ if [ "${rds}X" != "X" ];
 #  echo "Tunnel connection Connected"
 #  echo "Connecting to db"
 #  psql -h localhost -p ${rds_port} -U master -d kanduladb -a -f ${db_setup_script}
+  export AWS_KEY=$( echo $AWS_ACCESS_KEY_ID | base64)
+  export AWS_SECRET=$( echo $AWS_SECRET_ACCESS_KEY | base64)
   envsubst < ${HELM_DIR}/pod_env.tmpl > ${HELM_DIR}/pod_env.yaml
   kubectl apply -f ${HELM_DIR}/pod_env.yaml
   envsubst < ${HELM_DIR}/kandula_nlb_service.tmpl > ${HELM_DIR}/kandula_nlb_service.yaml
