@@ -57,6 +57,13 @@ resource "aws_instance" "elk" {
   subnet_id                   = data.terraform_remote_state.vpc.outputs.private_subnets[0].id
   associate_public_ip_address = false
   user_data = file("${path.module}/../templates/userdata_eks.sh")
+  ebs_block_device {
+    device_name           = "xvds"
+    volume_type           = var.ebs_data_type
+    volume_size           = var.ebs_data_size
+    delete_on_termination = true
+    encrypted             = true
+  }
 
   vpc_security_group_ids = [
     data.terraform_remote_state.vpc.outputs.common_sg_id,aws_security_group.elk_sg.id

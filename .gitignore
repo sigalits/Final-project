@@ -16,6 +16,10 @@ grafana_svc.yml
 prometheus_svc.yml
 tls.tf
 */pod_env.yaml
+*/grafana_svc.yaml
+*/prometheus_svc.yaml
+*/kandula_nlb_service.yaml
+
 
 # Ignore any .tfvars files that are generated automatically for each Terraform run. Most
 # .tfvars files are managed as part of configuration and so should be included in
