@@ -1,9 +1,9 @@
 #! /bin/bash
 set -e
 echo "Installing requierments"
+sudo apt-get update -y
 sudo apt install nfs-common -y
 sudo apt install awscli -y
-
 echo "Efs mount"
 echo " Printing variables passed"
 echo "${efs_dns}"

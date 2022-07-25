@@ -11,11 +11,7 @@ echo ""
 cluster_name=$(terraform output cluster_name)
 cluster_name=$(echo ${cluster_name} | sed 's/"//g')
 echo "EKS Cluster name is :" ${cluster_name}
-#alb_jenkins=$(terraform output Jenkins_alb)
-#alb_jenkins=$(echo ${alb_jenkins} | sed 's/"//g')
-#alb_jenkins=$(echo ${alb_jenkins} | awk -F\" '{print $2}')
-#consul_alb=$(terraform output consul_alb)
-#consul_alb=$(echo ${consul_alb} | awk -F\" '{print $2}')
+
 db_setup_script=$(terraform output db_setup_script | awk -F\" '{print $2}')
 rds=$(terraform output rds_endpoint)
 rds=$(echo ${rds} | awk -F\" '{print $2}')
@@ -23,10 +19,10 @@ export db_user=`echo $(terraform output db_user) |  awk -F\" '{print $2}' | base
 export db_pass=`echo $(terraform output db_pass) |  awk -F\" '{print $2}' | base64`
 export db_name=`echo $(terraform output db_name) |  awk -F\" '{print $2}' | base64`
 echo "db_name is $db_name"
-#rds_port1=$(terraform output rds_port)
-#rds_port=$(echo $rds_port1 |  awk -F\, '{print $1}' )
+rds_port=$(cat ~/.pgpass |  awk -F: '{print $2}')
+
 echo $rds
-#echo $rds_port
+echo "Rds port is $rds_port "
 acm_certificate_arn=$(terraform output acm_certificate_arn)
 export acm_certificate_arn=$(echo ${acm_certificate_arn} | sed 's/"//g')
 elk_ip=$(terraform output elk_ip)
@@ -38,9 +34,7 @@ echo "Jenkins master is ${jenkins_server} "
 jenkins_node0=`echo $(terraform output jenkins_nodes_ip) |  awk -F\, '{print $1}' | awk -F\" '{print $2}'`
 jenkins_node1=`echo $(terraform output jenkins_nodes_ip) |  awk -F\, '{print $2}' | awk -F\" '{print $2}'`
 
-#echo $jenkins_node1
-#echo $jenkins_node0
-#exit
+
 echo "creating ssh/config file...."
 mv ~/.ssh/config ~/.ssh/config.save_$$
 current_dir=$(pwd)
@@ -113,7 +107,7 @@ echo "For proceeding with Ansible deployment "
 echo "cd to ${TOP_DIR}/ansible"
 cd  ${TOP_DIR}/ansible/
 echo "Running ansible-playbook final_project.yaml"
-#ansible-playbook final_project.yaml
+ansible-playbook final_project.yaml
 echo ""
 echo ""
 echo "Please run Jenkins job "
@@ -130,12 +124,7 @@ helm repo add grafana https://grafana.github.io/helm-charts -n grafana
 helm repo add hashicorp https://helm.releases.hashicorp.com -n consul
 helm repo update
 echo "helm install prometheus"
-#helm show values prometheus-community/prometheus > ${HELM_DIR}/prom_values.yaml
 helm install prometheus prometheus-community/prometheus --namespace monitoring -f ${HELM_DIR}/prom_values.yaml
-
-#export POD_PROM=$(kubectl get pods --namespace monitoring -l "app=prometheus,component=server" -o jsonpath="{.items[0].metadata.name}")
-#echo "To expose prometheus  use : kubectl --namespace monitoring port-forward $POD_PROM 9090 & "
-#alias ExposeProm=' kubectl --namespace monitoring port-forward $POD_PROM 9090'
 
 echo "helm install Grafana"
 helm install grafana grafana/grafana -n grafana -f ${HELM_DIR}/grafana_values.yaml

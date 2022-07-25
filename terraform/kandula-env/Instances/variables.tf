@@ -96,7 +96,7 @@ variable "ebs_data_type" {
 
 variable "ebs_data_size" {
   description = "ebs_data_size"
-  default     = 10
+  default     = 12
 }
 
 variable "cidr_blocks" {

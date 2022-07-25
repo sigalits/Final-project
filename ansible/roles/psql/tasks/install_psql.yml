@@ -53,25 +53,3 @@
     service_address: "{{db_host }}"
     tags:
       - not_ec2
-
-- name: copy setup sql script
-  copy:
-    src: ./files/postgres_exporter_objects.sql
-    dest: /home/ubuntu/
-    owner: ubuntu
-    mode: '0775'
-  tags:
-    - include_psql_role
-
-- name: run sql script on rds db
-  community.postgresql.postgresql_script:
-    db: "postgres"
-    port: "{{ db_port }}"
-    login_host: "{{ db_host}}"
-    login_user: "{{ db_admin_user }}"
-    login_password: "{{ db_admin_password }}"
-    path: /home/ubuntu/postgres_exporter_objects.sql
-    encoding: UTF-8
-  tags:
-    - include_psql_role
-  ignore_errors: yes
